@@ -37,8 +37,8 @@ func logStatsLoop(storage stats.Storage) {
 	for {
 		select {
 		case <-logTimer:
-			values, err := storage.Fetch(stats.StatTypeTemp, time.Time{}, time.Now())
-			logStats(stats.StatTypeTemp, values, err)
+			values, err := storage.Fetch(stats.StatTypeTemperature, time.Time{}, time.Now())
+			logStats(stats.StatTypeTemperature, values, err)
 
 			values, err = storage.Fetch(stats.StatTypeHumidity, time.Time{}, time.Now())
 			logStats(stats.StatTypeHumidity, values, err)

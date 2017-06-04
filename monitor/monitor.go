@@ -23,7 +23,7 @@ func (m *Monitor) Begin() {
 		select {
 		case temp := <-tempStream:
 			m.Storage.Record(stats.Stat{
-				StatType: stats.StatTypeTemp,
+				StatType: stats.StatTypeTemperature,
 				When:     time.Now(),
 				Value:    float64(temp),
 			})

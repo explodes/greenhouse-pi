@@ -1,8 +1,8 @@
 package stats
 
 const (
-	StatTypeTemp     = StatType("temp")
-	StatTypeHumidity = StatType("humidity")
+	StatTypeTemperature = StatType("temperature")
+	StatTypeHumidity    = StatType("humidity")
 )
 
 type StatType string

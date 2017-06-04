@@ -7,24 +7,21 @@ import (
 	"time"
 
 	"github.com/explodes/greenhouse-pi/stats"
-	"github.com/gorilla/mux"
 )
 
-func (api *Api) History(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-
+func (api *Api) History(w http.ResponseWriter, r *http.Request, vars map[string]string) {
 	// extract stat type
 	// input
 	statTypeRaw, ok := vars["stat"]
 	if !ok {
-		w.WriteHeader(400)
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("missing stat"))
 		return
 	}
 	// parse
 	statType := stats.StatType(statTypeRaw)
 	switch statType {
-	case stats.StatTypeTemp:
+	case stats.StatTypeTemperature:
 		break
 	case stats.StatTypeHumidity:
 		break
@@ -66,22 +63,27 @@ func (api *Api) History(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	results, err := api.storage.Fetch(statType, start, end)
+	results, err := api.Storage.Fetch(statType, start, end)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(fmt.Sprintf("error fetching results: %v", err)))
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	enc := json.NewEncoder(w)
-	enc.Encode(map[string]interface{}{
+	body, err := json.Marshal(map[string]interface{}{
 		"start": start,
 		"end":   end,
 		"stat":  statType,
 		"items": convertStatsToResponse(results),
 	})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fmt.Sprintf("unable to marshal json: %v", err)))
+		return
+	}
 
+	w.WriteHeader(http.StatusOK)
+	w.Write(body)
 }
 
 func parseTime(s string) (time.Time, error) {
@@ -96,10 +98,10 @@ func parseTime(s string) (time.Time, error) {
 	return time.Time{}, err
 }
 
-func convertStatsToResponse(stats []stats.Stat) ([]statResponse) {
-	results := make([]statResponse, 0, len(stats))
+func convertStatsToResponse(stats []stats.Stat) ([]KnownStat) {
+	results := make([]KnownStat, 0, len(stats))
 	for _, stat := range stats {
-		results = append(results, statResponse{
+		results = append(results, KnownStat{
 			When:  stat.When,
 			Value: stat.Value,
 		})
