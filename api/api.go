@@ -23,7 +23,8 @@ var (
 	statusRecorderIsResonseWriter http.ResponseWriter
 )
 
-// Api is an object used to serve the JSON api for this system
+// Api is an object used to serve the JSON api for this system.
+// See http://docs.greenhousepi.apiary.io for documentation
 type Api struct {
 	Storage stats.Storage
 }

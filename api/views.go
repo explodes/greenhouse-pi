@@ -48,7 +48,7 @@ func convertStatsToResponse(stats []stats.Stat) []KnownStat {
 	return results
 }
 
-// History returns the history for a given stat and date range. See http://docs.greenhousepi.apiary.io
+// History returns the history for a given stat and date range
 func (api *Api) History(w http.ResponseWriter, r *http.Request, vars map[string]string) {
 	// extract stat type
 	// input
