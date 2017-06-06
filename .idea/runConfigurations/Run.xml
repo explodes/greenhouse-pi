@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run" type="GoRunFileConfiguration" factoryName="Go Single File">
+    <module name="greenhouse-pi" />
+    <working_directory value="$PROJECT_DIR$/" />
+    <filePath value="$PROJECT_DIR$/cmd/sensors/main.go" />
+    <method />
+  </configuration>
+</component>
