@@ -2,6 +2,8 @@
 
 Greenhouse sensor monitoring tool for my backyard greenhouse.
 
+Api documentation is available at [docs.greenhousepi.apiary.io](http://docs.greenhousepi.apiary.io)
+
 ## Plan
 
  - Add thermometer and hygrometer GPIO sensors
