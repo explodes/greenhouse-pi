@@ -71,6 +71,9 @@ func validateFlags() {
 }
 
 func logStatsLoop(storage stats.Storage) {
+	if *flagLogFrq == 0 {
+		return
+	}
 	frq := time.Duration(*flagLogFrq) * time.Millisecond
 	logTimer := time.NewTicker(frq).C
 	for {
