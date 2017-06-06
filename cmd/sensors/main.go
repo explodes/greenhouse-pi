@@ -19,14 +19,13 @@ import (
 )
 
 var (
-	flagBind          = flag.String("bind", "0.0.0.0:8096", "Bind address for the API server")
-	flagSensorFrq     = flag.Int("sensorfrq", defaultSensorFrq, fmt.Sprintf("How frequently to read sensor values. Minimum %d", minSensorFreq))
-	flagDbConn        = flag.String("db", "mock://fake/40", "Database connection string (postgres: postgresql://user:pass@host/db)")
-	flagThermConn     = flag.String("therm", "mock://fake", "Temperature sensor connection string")
-	flagHygroConn     = flag.String("hygro", "mock://fake", "Humidity sensor connection string")
-	flagWaterConn     = flag.String("water", "mock://fake", "Water unit connection string")
-	flagFanConn       = flag.String("fan", "mock://fake", "Fan unit connection string")
-	flagMigrationsDir = flag.String("migrations", "./migrations", "Database migrations directory")
+	flagBind      = flag.String("bind", "0.0.0.0:8096", "Bind address for the API server")
+	flagSensorFrq = flag.Int("sensorfrq", defaultSensorFrq, fmt.Sprintf("How frequently to read sensor values. Minimum %d", minSensorFreq))
+	flagDbConn    = flag.String("db", "mock://fake/40", "Database connection string (postgres: postgresql://user:pass@host/db)")
+	flagThermConn = flag.String("therm", "mock://fake", "Temperature sensor connection string")
+	flagHygroConn = flag.String("hygro", "mock://fake", "Humidity sensor connection string")
+	flagWaterConn = flag.String("water", "mock://fake", "Water unit connection string")
+	flagFanConn   = flag.String("fan", "mock://fake", "Fan unit connection string")
 )
 
 const (
