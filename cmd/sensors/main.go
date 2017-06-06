@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	sensorFrq = 100 * time.Millisecond
+	sensorFrq = 2000 * time.Millisecond
 	logFrq    = 1000 * time.Millisecond
 )
 

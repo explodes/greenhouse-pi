@@ -57,7 +57,7 @@ func (w *responseWriterRecorder) Assert(t *testing.T) *assert {
 
 func (a *assert) StatusEquals(t *testing.T, status int) *assert {
 	if a.w.Status != status {
-		t.Fatalf("unexpected status: got %d need %d", a.w.Status, status)
+		t.Fatalf("unexpected status: got %d need %d\nbody=%s", a.w.Status, status, a.w)
 	}
 	return a
 }

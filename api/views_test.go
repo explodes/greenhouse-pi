@@ -58,6 +58,12 @@ func TestApiView(t *testing.T) {
 		t.Run(apiViewTest(history_MissingStart))
 		t.Run(apiViewTest(history_MissingEnd))
 	})
+	t.Run("Latest", func(t *testing.T) {
+		t.Parallel()
+		t.Run(apiViewTest(latest_OK))
+		t.Run(apiViewTest(latest_OKwithValues))
+		t.Run(apiViewTest(latest_MissingStat))
+	})
 }
 
 func history_OK(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -73,11 +79,11 @@ func history_OK(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 	w.Assert(t).
 		StatusEquals(t, http.StatusOK).
 		JsonBodyEquals(t, map[string]interface{}{
-		"start": start,
-		"end":   end,
-		"stat":  "temperature",
-		"items": []api.KnownStat{},
-	})
+			"start": start,
+			"end":   end,
+			"stat":  "temperature",
+			"items": []api.KnownStat{},
+		})
 }
 
 func history_OKwithValues(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -97,13 +103,13 @@ func history_OKwithValues(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 	w.Assert(t).
 		StatusEquals(t, http.StatusOK).
 		JsonBodyEquals(t, map[string]interface{}{
-		"start": start,
-		"end":   end,
-		"stat":  "temperature",
-		"items": []api.KnownStat{
-			{When: when1, Value: 1},
-			{When: when2, Value: 2},
-		}})
+			"start": start,
+			"end":   end,
+			"stat":  "temperature",
+			"items": []api.KnownStat{
+				{When: when1, Value: 1},
+				{When: when2, Value: 2},
+			}})
 }
 
 func history_MissingStat(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -144,4 +150,49 @@ func history_MissingEnd(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 	w.Assert(t).
 		StatusEquals(t, http.StatusBadRequest).
 		StringBodyEquals(t, "missing end time")
+}
+
+func latest_OK(t *testing.T, a *api.Api, w *responseWriterRecorder) {
+	a.Latest(w, nil, map[string]string{
+		"stat": "temperature",
+	})
+
+	w.Assert(t).
+		StatusEquals(t, http.StatusOK).
+		JsonBodyEquals(t, map[string]interface{}{
+			"stat":  "temperature",
+			"value": float64(0),
+		})
+}
+
+func latest_OKwithValues(t *testing.T, a *api.Api, w *responseWriterRecorder) {
+	when1 := time.Now().Add(-time.Minute)
+	a.Storage.Record(stats.Stat{StatType: stats.StatTypeTemperature, When: when1, Value: 1})
+	when2 := time.Now().Add(-time.Second)
+	a.Storage.Record(stats.Stat{StatType: stats.StatTypeTemperature, When: when2, Value: 2})
+
+	a.Latest(w, nil, map[string]string{
+		"stat": "temperature",
+	})
+
+	w.Assert(t).
+		StatusEquals(t, http.StatusOK).
+		JsonBodyEquals(t, map[string]interface{}{
+			"stat":  "temperature",
+			"value": float64(2),
+		})
+}
+
+func latest_MissingStat(t *testing.T, a *api.Api, w *responseWriterRecorder) {
+	start := time.Now().Add(-time.Hour).Format(iso8601)
+	end := time.Now().Format(iso8601)
+
+	a.Latest(w, nil, map[string]string{
+		"start": start,
+		"end":   end,
+	})
+
+	w.Assert(t).
+		StatusEquals(t, http.StatusBadRequest).
+		StringBodyEquals(t, "missing stat")
 }

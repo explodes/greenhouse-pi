@@ -54,10 +54,29 @@ func (ss *fakeStatsStorage) Fetch(statType StatType, start, end time.Time) ([]St
 
 	filtered := make([]Stat, 0, ss.limit)
 	for _, stat := range list {
-		if between(stat.When, start, end) {
+		if stat.StatType == statType && between(stat.When, start, end) {
 			filtered = append(filtered, stat)
 		}
 	}
 
 	return filtered, nil
+}
+
+func (ss *fakeStatsStorage) Latest(statType StatType) (Stat, error) {
+	ss.mu.RLock()
+	defer ss.mu.RUnlock()
+
+	list, ok := ss.storage[statType]
+	if !ok || len(list) == 0 {
+		return Stat{}, ErrNoStats
+	}
+
+	latest := list[0]
+	for _, stat := range list[1:] {
+		if stat.StatType == statType && stat.When.After(latest.When) {
+			latest = stat
+		}
+	}
+
+	return latest, nil
 }
