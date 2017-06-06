@@ -3,33 +3,36 @@ package controllers
 import "log"
 
 type fakeUnit struct {
-	name   string
-	status bool
+	name string
+	on   bool
 }
 
 func NewFakeUnit(name string) Unit {
 	return &fakeUnit{
-		name:   name,
-		status: false,
+		name: name,
+		on:   false,
 	}
 }
 
-func (wu *fakeUnit) Name() string {
-	return wu.name
+func (u *fakeUnit) Name() string {
+	return u.name
 }
 
-func (wu *fakeUnit) On() error {
-	log.Printf("%s on", wu.name)
-	wu.status = true
+func (u *fakeUnit) On() error {
+	log.Printf("%s on", u.name)
+	u.on = true
 	return nil
 }
 
-func (wu *fakeUnit) Off() error {
-	log.Printf("%s off", wu.name)
-	wu.status = false
+func (u *fakeUnit) Off() error {
+	log.Printf("%s off", u.name)
+	u.on = false
 	return nil
 }
 
-func (wu *fakeUnit) Status() (bool, error) {
-	return wu.status, nil
+func (u *fakeUnit) Status() (UnitStatus, error) {
+	if u.on {
+		return UnitStatusOn, nil
+	}
+	return UnitStatusOff, nil
 }

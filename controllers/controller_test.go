@@ -29,8 +29,11 @@ func (u *TestUnit) Off() error {
 	return nil
 }
 
-func (u *TestUnit) Status() (bool, error) {
-	return u.status, nil
+func (u *TestUnit) Status() (UnitStatus, error) {
+	if u.status {
+		return UnitStatusOn, nil
+	}
+	return UnitStatusOff, nil
 }
 
 func controllerTest(f func(t *testing.T, c *Controller, testUnit *TestUnit)) (string, func(*testing.T)) {
@@ -83,7 +86,7 @@ func controller_TurnUnitOff(t *testing.T, c *Controller, testUnit *TestUnit) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if status {
+	if status != UnitStatusOff {
 		t.Error("controller did not turn off Unit")
 	}
 }

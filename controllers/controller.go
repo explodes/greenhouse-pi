@@ -8,21 +8,6 @@ import (
 	"github.com/explodes/greenhouse-pi/stats"
 )
 
-// Unit toggles the flow of water in the system
-type Unit interface {
-	// Name of this Unit
-	Name() string
-
-	// On turns on the Unit
-	On() error
-
-	// Off turns off the Unit
-	Off() error
-
-	// Whether or not this Unit is on
-	Status() (bool, error)
-}
-
 // Controller manages the timing of a Unit
 type Controller struct {
 	Unit      Unit
@@ -42,7 +27,7 @@ func NewController(unit Unit, storage stats.Storage, scheduler *Scheduler) (*Con
 		scheduler: scheduler,
 		Unit:      unit,
 		storage:   storage,
-		isOn:      isOn,
+		isOn:      isOn == UnitStatusOn,
 	}
 	return wc, nil
 }
