@@ -7,6 +7,7 @@ import (
 
 	"github.com/explodes/greenhouse-pi/stats"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
 const (
@@ -80,8 +81,10 @@ func (api *Api) Serve(bind string) {
 	router.Handle("/{stat}/history/{start}/{end}", varsHandler(api.History))
 	router.Handle("/{stat}/latest", varsHandler(api.Latest))
 
+	handler := cors.Default().Handler(router)
+
 	srv := &http.Server{
-		Handler:      router,
+		Handler:      handler,
 		Addr:         bind,
 		WriteTimeout: rwTimeout,
 		ReadTimeout:  rwTimeout,
