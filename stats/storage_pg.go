@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"github.com/explodes/greenhouse-pi/logging"
@@ -16,19 +15,6 @@ const (
 
 type pgStorage struct {
 	db *sql.DB
-}
-
-// FileExists tests to see if a file exists, returning any
-// errors associated with testing the filesystem
-func fileExists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true, nil
-	}
-	if os.IsNotExist(err) {
-		err = nil
-	}
-	return false, err
 }
 
 func NewPgStorage(conn string) (Storage, error) {
