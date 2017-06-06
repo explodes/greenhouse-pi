@@ -44,9 +44,9 @@ func (wc *Controller) TurnUnitOn(delay time.Duration, duration time.Duration) {
 func (wc *Controller) turnUnitOnNow() {
 	if !wc.isOn {
 		if err := wc.Unit.On(); err != nil {
-			go wc.storage.Log(logging.LogLevelError, "error turning on water: %v", err)
+			go wc.storage.Log(logging.LevelError, "error turning on water: %v", err)
 		} else {
-			go wc.storage.Log(logging.LogLevelInfo, "water was turned on")
+			go wc.storage.Log(logging.LevelInfo, "water was turned on")
 			wc.isOn = true
 		}
 	}
@@ -59,9 +59,9 @@ func (wc *Controller) TurnUnitOff() {
 func (wc *Controller) turnUnitOffNow() {
 	if wc.isOn {
 		if err := wc.Unit.Off(); err != nil {
-			go wc.storage.Log(logging.LogLevelError, "error turning off water: %v", err)
+			go wc.storage.Log(logging.LevelError, "error turning off water: %v", err)
 		} else {
-			go wc.storage.Log(logging.LogLevelInfo, "water was turned off")
+			go wc.storage.Log(logging.LevelInfo, "water was turned off")
 			wc.isOn = false
 		}
 	}

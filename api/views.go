@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/explodes/greenhouse-pi/controllers"
 	"github.com/explodes/greenhouse-pi/stats"
 )
 
@@ -22,6 +23,8 @@ func validateStat(name string) (stats.StatType, error) {
 		return stats.StatTypeHumidity, nil
 	case string(stats.StatTypeWater):
 		return stats.StatTypeWater, nil
+	case string(stats.StatTypeFan):
+		return stats.StatTypeFan, nil
 	default:
 		return stats.StatType(""), errInvalidStat
 	}
@@ -97,6 +100,12 @@ func (api *Api) History(w http.ResponseWriter, r *http.Request, vars map[string]
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("invalid end time"))
+		return
+	}
+
+	if end.Before(start) {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("end time must come after start time"))
 		return
 	}
 
@@ -211,4 +220,79 @@ func (api *Api) Status(w http.ResponseWriter, r *http.Request, vars map[string]s
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
+}
+
+// Schedule allows scheduling units to operate during certain times
+func (api *Api) Schedule(w http.ResponseWriter, r *http.Request, vars map[string]string) {
+	// extract stat type
+	// input
+	statTypeRaw, ok := vars["stat"]
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("missing stat"))
+		return
+	}
+
+	var controller *controllers.Controller
+	switch statTypeRaw {
+	case string(stats.StatTypeWater):
+		controller = api.Water
+	case string(stats.StatTypeFan):
+		controller = api.Fan
+	default:
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("invalid stat type"))
+		return
+	}
+
+	// extract start date
+	// input
+	startRaw, ok := vars["start"]
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("missing start time"))
+		return
+	}
+	// parse
+	start, err := parseTime(startRaw)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("invalid start time"))
+		return
+	}
+
+	// extract end date
+	// input
+	endRaw, ok := vars["end"]
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("missing end time"))
+		return
+	}
+	// parse
+	end, err := parseTime(endRaw)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("invalid end time"))
+		return
+	}
+
+	if end.Before(start) {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("end time must come after start time"))
+		return
+	}
+	now := time.Now()
+	if start.Before(now) {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("start time must be in the future"))
+		return
+	}
+
+	delay := start.Sub(now)
+	duration := end.Sub(start)
+
+	controller.TurnUnitOn(delay, duration)
+
+	w.WriteHeader(http.StatusNoContent)
 }

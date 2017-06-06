@@ -53,7 +53,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("unable to start fan controller: %v", err)
 	}
-	storage.Log(logging.LogLevelInfo, "sensors startup")
+	storage.Log(logging.LevelInfo, "sensors startup")
 
 	sensorMonitor := monitor.Monitor{
 		Thermometer: thermometer,

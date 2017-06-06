@@ -80,6 +80,14 @@ func TestApiView(t *testing.T) {
 		t.Run(apiViewTest(status_OK))
 		t.Run(apiViewTest(status_OKwithValues))
 	})
+	t.Run("Schedule", func(t *testing.T) {
+		t.Parallel()
+		t.Run(apiViewTest(schedule_OK))
+		t.Run(apiViewTest(schedule_invalidStat))
+		t.Run(apiViewTest(schedule_MissingStat))
+		t.Run(apiViewTest(schedule_MissingStart))
+		t.Run(apiViewTest(schedule_MissingEnd))
+	})
 }
 
 func history_OK(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -93,8 +101,8 @@ func history_OK(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 	})
 
 	w.Assert(t).
-		StatusEquals(t, http.StatusOK).
-		JsonBodyEquals(t, map[string]interface{}{
+		StatusEquals(http.StatusOK).
+		JsonBodyEquals(map[string]interface{}{
 			"start": start,
 			"end":   end,
 			"stat":  "temperature",
@@ -117,8 +125,8 @@ func history_OKwithValues(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 	})
 
 	w.Assert(t).
-		StatusEquals(t, http.StatusOK).
-		JsonBodyEquals(t, map[string]interface{}{
+		StatusEquals(http.StatusOK).
+		JsonBodyEquals(map[string]interface{}{
 			"start": start,
 			"end":   end,
 			"stat":  "temperature",
@@ -138,8 +146,8 @@ func history_MissingStat(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 	})
 
 	w.Assert(t).
-		StatusEquals(t, http.StatusBadRequest).
-		StringBodyEquals(t, "missing stat")
+		StatusEquals(http.StatusBadRequest).
+		StringBodyEquals("missing stat")
 }
 
 func history_MissingStart(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -151,8 +159,8 @@ func history_MissingStart(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 	})
 
 	w.Assert(t).
-		StatusEquals(t, http.StatusBadRequest).
-		StringBodyEquals(t, "missing start time")
+		StatusEquals(http.StatusBadRequest).
+		StringBodyEquals("missing start time")
 }
 
 func history_MissingEnd(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -164,8 +172,8 @@ func history_MissingEnd(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 	})
 
 	w.Assert(t).
-		StatusEquals(t, http.StatusBadRequest).
-		StringBodyEquals(t, "missing end time")
+		StatusEquals(http.StatusBadRequest).
+		StringBodyEquals("missing end time")
 }
 
 func latest_OK(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -174,8 +182,8 @@ func latest_OK(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 	})
 
 	w.Assert(t).
-		StatusEquals(t, http.StatusOK).
-		JsonBodyEquals(t, map[string]interface{}{
+		StatusEquals(http.StatusOK).
+		JsonBodyEquals(map[string]interface{}{
 			"stat":  "temperature",
 			"value": float64(0),
 		})
@@ -192,8 +200,8 @@ func latest_OKwithValues(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 	})
 
 	w.Assert(t).
-		StatusEquals(t, http.StatusOK).
-		JsonBodyEquals(t, map[string]interface{}{
+		StatusEquals(http.StatusOK).
+		JsonBodyEquals(map[string]interface{}{
 			"stat":  "temperature",
 			"value": float64(2),
 		})
@@ -209,16 +217,16 @@ func latest_MissingStat(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 	})
 
 	w.Assert(t).
-		StatusEquals(t, http.StatusBadRequest).
-		StringBodyEquals(t, "missing stat")
+		StatusEquals(http.StatusBadRequest).
+		StringBodyEquals("missing stat")
 }
 
 func status_OK(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 	a.Status(w, nil, nil)
 
 	w.Assert(t).
-		StatusEquals(t, http.StatusOK).
-		JsonBodyEquals(t, map[string]interface{}{
+		StatusEquals(http.StatusOK).
+		JsonBodyEquals(map[string]interface{}{
 			"water":       map[string]interface{}{"status": "off"},
 			"fan":         map[string]interface{}{"status": "off"},
 			"temperature": map[string]interface{}{"value": float64(0)},
@@ -235,11 +243,79 @@ func status_OKwithValues(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 	a.Status(w, nil, nil)
 
 	w.Assert(t).
-		StatusEquals(t, http.StatusOK).
-		JsonBodyEquals(t, map[string]interface{}{
+		StatusEquals(http.StatusOK).
+		JsonBodyEquals(map[string]interface{}{
 			"water":       map[string]interface{}{"status": "off"},
 			"fan":         map[string]interface{}{"status": "off"},
 			"temperature": map[string]interface{}{"value": float64(1)},
 			"humidity":    map[string]interface{}{"value": float64(2)},
 		})
+}
+
+func schedule_OK(t *testing.T, a *api.Api, w *responseWriterRecorder) {
+	start := time.Now().Add(time.Hour).Format(iso8601)
+	end := time.Now().Add(2 * time.Hour).Format(iso8601)
+
+	a.Schedule(w, nil, map[string]string{
+		"stat":  "water",
+		"start": start,
+		"end":   end,
+	})
+
+	w.Assert(t).StatusEquals(http.StatusNoContent)
+}
+
+func schedule_MissingStat(t *testing.T, a *api.Api, w *responseWriterRecorder) {
+	start := time.Now().Add(time.Hour).Format(iso8601)
+	end := time.Now().Add(2 * time.Hour).Format(iso8601)
+
+	a.Schedule(w, nil, map[string]string{
+		"start": start,
+		"end":   end,
+	})
+
+	w.Assert(t).
+		StatusEquals(http.StatusBadRequest).
+		StringBodyEquals("missing stat")
+}
+
+func schedule_invalidStat(t *testing.T, a *api.Api, w *responseWriterRecorder) {
+	start := time.Now().Add(time.Hour).Format(iso8601)
+	end := time.Now().Add(2 * time.Hour).Format(iso8601)
+
+	a.Schedule(w, nil, map[string]string{
+		"stat":  "temperature",
+		"start": start,
+		"end":   end,
+	})
+
+	w.Assert(t).
+		StatusEquals(http.StatusBadRequest).
+		StringBodyEquals("invalid stat type")
+}
+
+func schedule_MissingStart(t *testing.T, a *api.Api, w *responseWriterRecorder) {
+	end := time.Now().Add(2 * time.Hour).Format(iso8601)
+
+	a.Schedule(w, nil, map[string]string{
+		"stat": "water",
+		"end":  end,
+	})
+
+	w.Assert(t).
+		StatusEquals(http.StatusBadRequest).
+		StringBodyEquals("missing start time")
+}
+
+func schedule_MissingEnd(t *testing.T, a *api.Api, w *responseWriterRecorder) {
+	start := time.Now().Add(time.Hour).Format(iso8601)
+
+	a.Schedule(w, nil, map[string]string{
+		"stat":  "water",
+		"start": start,
+	})
+
+	w.Assert(t).
+		StatusEquals(http.StatusBadRequest).
+		StringBodyEquals("missing end time")
 }

@@ -10,7 +10,7 @@ import (
 type LogLevel uint8
 
 type Log struct {
-	Level   logging.LogLevel
+	Level   logging.Level
 	When    time.Time
 	Message string
 }
@@ -42,8 +42,8 @@ type Storage interface {
 	Latest(statType StatType) (Stat, error)
 
 	// Log records a message at a given log level
-	Log(level logging.LogLevel, fmt string, args ...interface{})
+	Log(level logging.Level, fmt string, args ...interface{})
 
 	// Logs retrieves logs for a given time frame with a given minimum log level
-	Logs(level logging.LogLevel, start, end time.Time) ([]Log, error)
+	Logs(level logging.Level, start, end time.Time) ([]Log, error)
 }

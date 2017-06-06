@@ -87,7 +87,7 @@ func (ss *fakeStatsStorage) Latest(statType StatType) (Stat, error) {
 	return latest, nil
 }
 
-func (ss *fakeStatsStorage) Log(level logging.LogLevel, format string, args ...interface{}) {
+func (ss *fakeStatsStorage) Log(level logging.Level, format string, args ...interface{}) {
 	ss.mu.Lock()
 	defer ss.mu.Unlock()
 
@@ -106,7 +106,7 @@ func (ss *fakeStatsStorage) Log(level logging.LogLevel, format string, args ...i
 	log.Printf("%s: %s", level, msg)
 }
 
-func (ss *fakeStatsStorage) Logs(level logging.LogLevel, start, end time.Time) ([]Log, error) {
+func (ss *fakeStatsStorage) Logs(level logging.Level, start, end time.Time) ([]Log, error) {
 	ss.mu.RLock()
 	defer ss.mu.RUnlock()
 

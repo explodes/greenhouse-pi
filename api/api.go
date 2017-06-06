@@ -86,9 +86,10 @@ func New(storage stats.Storage, water, fan *controllers.Controller) *Api {
 func (api *Api) Serve(bind string) {
 
 	router := mux.NewRouter()
-	router.Handle("/{stat}/history/{start}/{end}", varsHandler(api.History))
-	router.Handle("/{stat}/latest", varsHandler(api.Latest))
-	router.Handle("/status", varsHandler(api.Status))
+	router.Methods(http.MethodGet).Path("/{stat}/history/{start}/{end}").Handler(varsHandler(api.History))
+	router.Methods(http.MethodGet).Path("/{stat}/latest").Handler(varsHandler(api.Latest))
+	router.Methods(http.MethodGet).Path("/status").Handler(varsHandler(api.Status))
+	router.Methods(http.MethodPost).Path("/{stat}/schedule/{start}/{end}").Handler(varsHandler(api.Status))
 
 	handler := cors.Default().Handler(router)
 
@@ -99,6 +100,8 @@ func (api *Api) Serve(bind string) {
 		ReadTimeout:  rwTimeout,
 		IdleTimeout:  idleTimeout,
 	}
+
+	api.Storage.Log(logging.LevelInfo, "serving on %s", bind)
 
 	log.Fatal(srv.ListenAndServe())
 }

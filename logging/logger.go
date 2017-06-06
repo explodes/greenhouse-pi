@@ -1,28 +1,28 @@
 package logging
 
 const (
-	LogLevelDebug LogLevel = iota
-	LogLevelInfo
-	LogLevelWarn
-	LogLevelError
+	LevelDebug Level = iota
+	LevelInfo
+	LevelWarn
+	LevelError
 )
 
-type LogLevel uint8
+type Level uint8
 
 type Logger interface {
 	// Log records a message at a given log level
-	Log(level LogLevel, fmt string, args ...interface{})
+	Log(level Level, fmt string, args ...interface{})
 }
 
-func (level LogLevel) String() string {
+func (level Level) String() string {
 	switch level {
-	case LogLevelDebug:
+	case LevelDebug:
 		return "debug"
-	case LogLevelInfo:
+	case LevelInfo:
 		return "info"
-	case LogLevelWarn:
+	case LevelWarn:
 		return "warning"
-	case LogLevelError:
+	case LevelError:
 		return "error"
 	default:
 		return "unknown"

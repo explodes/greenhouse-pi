@@ -55,29 +55,29 @@ func (w *responseWriterRecorder) Assert(t *testing.T) *assert {
 	}
 }
 
-func (a *assert) StatusEquals(t *testing.T, status int) *assert {
+func (a *assert) StatusEquals(status int) *assert {
 	if a.w.Status != status {
-		t.Fatalf("unexpected status: got %d need %d\nbody=%s", a.w.Status, status, a.w)
+		a.t.Fatalf("unexpected status: got %d need %d\nbody=%s", a.w.Status, status, a.w)
 	}
 	return a
 }
 
-func (a *assert) JsonBodyEquals(t *testing.T, expected interface{}) *assert {
+func (a *assert) JsonBodyEquals(expected interface{}) *assert {
 	serialized, err := json.Marshal(expected)
 	if err != nil {
-		t.Fatalf("unable to marshal expected json: %v", err)
+		a.t.Fatalf("unable to marshal expected json: %v", err)
 	}
 	body := a.w.Body.Bytes()
 	if !reflect.DeepEqual(serialized, body) {
-		t.Fatalf("Unexpected json.\nGOT:  %s\nNEED: %s", string(body), string(serialized))
+		a.t.Fatalf("Unexpected json.\nGOT:  %s\nNEED: %s", string(body), string(serialized))
 	}
 	return a
 }
 
-func (a *assert) StringBodyEquals(t *testing.T, expected string) *assert {
+func (a *assert) StringBodyEquals(expected string) *assert {
 	body := string(a.w.Body.Bytes())
 	if body != expected {
-		t.Fatalf("Unexpected body.\nGOT:  %s\nNEED: %s", body, expected)
+		a.t.Fatalf("Unexpected body.\nGOT:  %s\nNEED: %s", body, expected)
 
 	}
 	return a
