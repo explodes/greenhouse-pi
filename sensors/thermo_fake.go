@@ -1,6 +1,9 @@
 package sensors
 
-import "time"
+import (
+	"log"
+	"time"
+)
 
 const (
 	fakeThermometerMin = 20
@@ -29,7 +32,9 @@ func (f *fakeThermometer) start(frq time.Duration) {
 }
 
 func (f *fakeThermometer) nextTemp() Temperature {
-	return Temperature(theRand.Float64()*(fakeThermometerMax-fakeThermometerMin) + fakeThermometerMin)
+	temp := Temperature(theRand.Float64()*(fakeThermometerMax-fakeThermometerMin) + fakeThermometerMin)
+	log.Printf("temp: %g", temp)
+	return temp
 }
 
 func (f *fakeThermometer) Read() <-chan Temperature {

@@ -1,6 +1,9 @@
 package sensors
 
-import "time"
+import (
+	"log"
+	"time"
+)
 
 const (
 	fakeHygrometerFrq = 2 * time.Second
@@ -30,7 +33,9 @@ func (f *fakeHygrometer) start(frq time.Duration) {
 }
 
 func (f *fakeHygrometer) nextTemp() Humidity {
-	return Humidity(theRand.Float64()*(fakeHygrometerMax-fakeHygrometerMin) + fakeHygrometerMin)
+	hum := Humidity(theRand.Float64()*(fakeHygrometerMax-fakeHygrometerMin) + fakeHygrometerMin)
+	log.Printf("humidity: %g", hum)
+	return hum
 }
 
 func (f *fakeHygrometer) Read() <-chan Humidity {
