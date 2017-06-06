@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/explodes/greenhouse-pi/api"
+	"github.com/explodes/greenhouse-pi/controllers"
+	"github.com/explodes/greenhouse-pi/logging"
 	"github.com/explodes/greenhouse-pi/monitor"
 	"github.com/explodes/greenhouse-pi/sensors"
 	"github.com/explodes/greenhouse-pi/stats"
@@ -38,6 +40,21 @@ func main() {
 	hygrometer := sensors.NewFakeHygrometer(sensorFrq)
 	storage := stats.NewFakeStatsStorage(40)
 
+	scheduler := controllers.NewScheduler()
+
+	waterUnit := controllers.NewFakeUnit("fake-water")
+	waterController, err := controllers.NewController(waterUnit, storage, scheduler)
+	if err != nil {
+		log.Fatalf("unable to start water controller: %v", err)
+	}
+
+	fanUnit := controllers.NewFakeUnit("fake-fan")
+	fanController, err := controllers.NewController(fanUnit, storage, scheduler)
+	if err != nil {
+		log.Fatalf("unable to start fan controller: %v", err)
+	}
+	storage.Log(logging.LogLevelInfo, "sensors startup")
+
 	sensorMonitor := monitor.Monitor{
 		Thermometer: thermometer,
 		Hygrometer:  hygrometer,
@@ -47,7 +64,7 @@ func main() {
 	go sensorMonitor.Begin()
 	go logStatsLoop(storage)
 
-	api.New(storage).Serve(*flagBind)
+	api.New(storage, waterController, fanController).Serve(*flagBind)
 }
 
 func validateFlags() {

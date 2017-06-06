@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/explodes/greenhouse-pi/controllers"
+	"github.com/explodes/greenhouse-pi/logging"
 	"github.com/explodes/greenhouse-pi/stats"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -27,6 +29,9 @@ var (
 // See http://docs.greenhousepi.apiary.io for documentation
 type Api struct {
 	Storage stats.Storage
+	Logger  logging.Logger
+	Water   *controllers.Controller
+	Fan     *controllers.Controller
 }
 
 // KnownStat is a stats.Stat but we know what stats.StatType it is already
@@ -68,9 +73,12 @@ func (vh varsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // New creates a new Api instance with the given storage
-func New(storage stats.Storage) *Api {
+func New(storage stats.Storage, water, fan *controllers.Controller) *Api {
 	return &Api{
 		Storage: storage,
+		Logger:  storage,
+		Water:   water,
+		Fan:     fan,
 	}
 }
 

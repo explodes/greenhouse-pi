@@ -3,7 +3,17 @@ package stats
 import (
 	"errors"
 	"time"
+
+	"github.com/explodes/greenhouse-pi/logging"
 )
+
+type LogLevel uint8
+
+type Log struct {
+	Level   logging.LogLevel
+	When    time.Time
+	Message string
+}
 
 type Stat struct {
 	StatType StatType
@@ -30,4 +40,10 @@ type Storage interface {
 	// type from the Storage.  If there are no statistics
 	// of that type recorded, it should return ErrNoStats
 	Latest(statType StatType) (Stat, error)
+
+	// Log records a message at a given log level
+	Log(level logging.LogLevel, fmt string, args ...interface{})
+
+	// Logs retrieves logs for a given time frame with a given minimum log level
+	Logs(level logging.LogLevel, start, end time.Time) ([]Log, error)
 }

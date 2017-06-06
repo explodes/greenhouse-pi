@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/explodes/greenhouse-pi/api"
+	"github.com/explodes/greenhouse-pi/controllers"
 	"github.com/explodes/greenhouse-pi/stats"
 )
 
@@ -38,8 +39,18 @@ func apiViewTest(f func(t *testing.T, a *api.Api, w *responseWriterRecorder)) (s
 	testFunc := func(t *testing.T) {
 		t.Parallel()
 
+		scheduler := controllers.NewScheduler()
 		storage := stats.NewFakeStatsStorage(10)
-		a := api.New(storage)
+		water, err := controllers.NewController(controllers.NewFakeUnit("fake-water"), storage, scheduler)
+		if err != nil {
+			t.Fatal(err)
+		}
+		fan, err := controllers.NewController(controllers.NewFakeUnit("fake-fan"), storage, scheduler)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		a := api.New(storage, water, fan)
 		w := NewResponseWriterRecorder()
 
 		f(t, a, w)

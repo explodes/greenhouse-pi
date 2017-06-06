@@ -1,13 +1,18 @@
 package stats
 
 import (
+	"fmt"
 	"sync"
 	"time"
+
+	"github.com/explodes/greenhouse-pi/logging"
+	"log"
 )
 
 type fakeStatsStorage struct {
 	mu      *sync.RWMutex
 	storage map[StatType][]Stat
+	logs    []Log
 	limit   int
 }
 
@@ -15,6 +20,7 @@ func NewFakeStatsStorage(limit int) Storage {
 	return &fakeStatsStorage{
 		mu:      &sync.RWMutex{},
 		storage: make(map[StatType][]Stat),
+		logs:    make([]Log, limit),
 		limit:   limit,
 	}
 }
@@ -79,4 +85,37 @@ func (ss *fakeStatsStorage) Latest(statType StatType) (Stat, error) {
 	}
 
 	return latest, nil
+}
+
+func (ss *fakeStatsStorage) Log(level logging.LogLevel, format string, args ...interface{}) {
+	ss.mu.Lock()
+	defer ss.mu.Unlock()
+
+	msg := fmt.Sprintf(format, args...)
+
+	if len(ss.logs) > ss.limit {
+		ss.logs = ss.logs[1:]
+	}
+
+	ss.logs = append(ss.logs, Log{
+		When:    time.Now(),
+		Level:   level,
+		Message: msg,
+	})
+
+	log.Printf("%s: %s", level, msg)
+}
+
+func (ss *fakeStatsStorage) Logs(level logging.LogLevel, start, end time.Time) ([]Log, error) {
+	ss.mu.RLock()
+	defer ss.mu.RUnlock()
+
+	filtered := make([]Log, 0, ss.limit)
+	for _, entry := range ss.logs {
+		if entry.Level >= level && between(entry.When, start, end) {
+			filtered = append(filtered, entry)
+		}
+	}
+
+	return filtered, nil
 }
