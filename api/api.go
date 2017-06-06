@@ -20,7 +20,6 @@ var (
 		"2006-01-02T15:04:05-0700",
 		"2006-01-02",
 	}
-	statusRecorderIsResonseWriter http.ResponseWriter
 )
 
 // Api is an object used to serve the JSON api for this system.
@@ -60,7 +59,6 @@ func (vh varsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	start := time.Now()
-	log.Printf("<-- %s %s", r.Method, r.URL)
 
 	vh(sr, r, vars)
 
