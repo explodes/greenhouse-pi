@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/explodes/greenhouse-pi/logging"
@@ -44,9 +45,9 @@ func (wc *Controller) TurnUnitOn(delay time.Duration, duration time.Duration) {
 func (wc *Controller) turnUnitOnNow() {
 	if !wc.isOn {
 		if err := wc.Unit.On(); err != nil {
-			go wc.storage.Log(logging.LevelError, "error turning on water: %v", err)
+			go wc.logWithPrintout(logging.LevelError, "error turning on water: %v", err)
 		} else {
-			go wc.storage.Log(logging.LevelInfo, "water was turned on")
+			go wc.logWithPrintout(logging.LevelInfo, "water was turned on")
 			wc.isOn = true
 		}
 	}
@@ -59,10 +60,16 @@ func (wc *Controller) TurnUnitOff() {
 func (wc *Controller) turnUnitOffNow() {
 	if wc.isOn {
 		if err := wc.Unit.Off(); err != nil {
-			go wc.storage.Log(logging.LevelError, "error turning off water: %v", err)
+			go wc.logWithPrintout(logging.LevelError, "error turning off water: %v", err)
 		} else {
-			go wc.storage.Log(logging.LevelInfo, "water was turned off")
+			go wc.logWithPrintout(logging.LevelInfo, "water was turned off")
 			wc.isOn = false
 		}
+	}
+}
+
+func (wc *Controller) logWithPrintout(level logging.Level, format string, args ...interface{}) {
+	if _, err := wc.storage.Log(level, format, args...); err != nil {
+		log.Printf(`error logging message "%s": %v`, fmt.Sprintf(format, args...), err)
 	}
 }

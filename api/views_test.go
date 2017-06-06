@@ -10,6 +10,7 @@ import (
 
 	"github.com/explodes/greenhouse-pi/api"
 	"github.com/explodes/greenhouse-pi/controllers"
+	"github.com/explodes/greenhouse-pi/logging"
 	"github.com/explodes/greenhouse-pi/stats"
 )
 
@@ -87,6 +88,15 @@ func TestApiView(t *testing.T) {
 		t.Run(apiViewTest(schedule_MissingStat))
 		t.Run(apiViewTest(schedule_MissingStart))
 		t.Run(apiViewTest(schedule_MissingEnd))
+	})
+	t.Run("Logs", func(t *testing.T) {
+		t.Parallel()
+		t.Run(apiViewTest(logs_OK))
+		t.Run(apiViewTest(logs_OKwithValues))
+		t.Run(apiViewTest(logs_MissingLevel))
+		t.Run(apiViewTest(logs_InvalidLevel))
+		t.Run(apiViewTest(logs_MissingStart))
+		t.Run(apiViewTest(logs_MissingEnd))
 	})
 }
 
@@ -312,6 +322,104 @@ func schedule_MissingEnd(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 
 	a.Schedule(w, nil, map[string]string{
 		"stat":  "water",
+		"start": start,
+	})
+
+	w.Assert(t).
+		StatusEquals(http.StatusBadRequest).
+		StringBodyEquals("missing end time")
+}
+
+func logs_OK(t *testing.T, a *api.Api, w *responseWriterRecorder) {
+	start := time.Now().Add(-time.Hour).Format(iso8601)
+	end := time.Now().Add(time.Hour).Format(iso8601)
+
+	a.Logs(w, nil, map[string]string{
+		"level": "debug",
+		"start": start,
+		"end":   end,
+	})
+
+	w.Assert(t).
+		StatusEquals(http.StatusOK).
+		JsonBodyEquals(map[string]interface{}{
+			"items": make([]map[string]interface{}, 0),
+		})
+}
+
+func logs_OKwithValues(t *testing.T, a *api.Api, w *responseWriterRecorder) {
+	entry, err  := a.Storage.Log(logging.LevelDebug, "hello world")
+	if err != nil {
+		t.Fatal(err)
+	}
+	start := time.Now().Add(-time.Hour).Format(iso8601)
+	end := time.Now().Add(time.Hour).Format(iso8601)
+
+	a.Logs(w, nil, map[string]string{
+		"level": "debug",
+		"start": start,
+		"end":   end,
+	})
+
+	w.Assert(t).
+		StatusEquals(http.StatusOK).
+		JsonBodyEquals(map[string]interface{}{
+			"items": []map[string]interface{}{
+				{
+					"level":   "debug",
+					"when":    entry.When,
+					"message": "hello world",
+				},
+			}})
+}
+
+func logs_MissingLevel(t *testing.T, a *api.Api, w *responseWriterRecorder) {
+	start := time.Now().Add(-time.Hour).Format(iso8601)
+	end := time.Now().Add(time.Hour).Format(iso8601)
+
+	a.Logs(w, nil, map[string]string{
+		"start": start,
+		"end":   end,
+	})
+
+	w.Assert(t).
+		StatusEquals(http.StatusBadRequest).
+		StringBodyEquals("missing log level")
+}
+
+func logs_InvalidLevel(t *testing.T, a *api.Api, w *responseWriterRecorder) {
+	start := time.Now().Add(-time.Hour).Format(iso8601)
+	end := time.Now().Add(time.Hour).Format(iso8601)
+
+	a.Logs(w, nil, map[string]string{
+		"level": "invalid",
+		"start": start,
+		"end":   end,
+	})
+
+	w.Assert(t).
+		StatusEquals(http.StatusBadRequest).
+		StringBodyEquals("invalid log level")
+}
+
+func logs_MissingStart(t *testing.T, a *api.Api, w *responseWriterRecorder) {
+	end := time.Now().Add(2 * time.Hour).Format(iso8601)
+
+	a.Logs(w, nil, map[string]string{
+		"level": "debug",
+		"end":   end,
+	})
+
+	w.Assert(t).
+		StatusEquals(http.StatusBadRequest).
+		StringBodyEquals("missing start time")
+}
+
+func logs_MissingEnd(t *testing.T, a *api.Api, w *responseWriterRecorder) {
+	start := time.Now().Add(time.Hour).Format(iso8601)
+
+	a.Logs(w, nil, map[string]string{
+		"level": "debug",
 		"start": start,
 	})
 

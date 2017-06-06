@@ -7,14 +7,6 @@ import (
 	"github.com/explodes/greenhouse-pi/logging"
 )
 
-type LogLevel uint8
-
-type Log struct {
-	Level   logging.Level
-	When    time.Time
-	Message string
-}
-
 type Stat struct {
 	StatType StatType
 	When     time.Time
@@ -30,6 +22,8 @@ var (
 // Storage is the database interface to
 // record and retrieve statistics
 type Storage interface {
+	logging.Logger
+
 	// Record puts a Stat record in the Storage
 	Record(stat Stat) error
 
@@ -41,9 +35,6 @@ type Storage interface {
 	// of that type recorded, it should return ErrNoStats
 	Latest(statType StatType) (Stat, error)
 
-	// Log records a message at a given log level
-	Log(level logging.Level, fmt string, args ...interface{})
-
 	// Logs retrieves logs for a given time frame with a given minimum log level
-	Logs(level logging.Level, start, end time.Time) ([]Log, error)
+	Logs(level logging.Level, start, end time.Time) ([]logging.LogEntry, error)
 }

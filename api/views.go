@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/explodes/greenhouse-pi/controllers"
+	"github.com/explodes/greenhouse-pi/logging"
 	"github.com/explodes/greenhouse-pi/stats"
 )
 
@@ -295,4 +296,98 @@ func (api *Api) Schedule(w http.ResponseWriter, r *http.Request, vars map[string
 	controller.TurnUnitOn(delay, duration)
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// Logs returns a list of log entries for a given time range
+func (api *Api) Logs(w http.ResponseWriter, r *http.Request, vars map[string]string) {
+	// extract log level
+	// input
+	levelRaw, ok := vars["level"]
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("missing log level"))
+		return
+	}
+	var level logging.Level
+	switch levelRaw {
+	case "debug":
+		level = logging.LevelDebug
+	case "info":
+		level = logging.LevelInfo
+	case "warn":
+		level = logging.LevelWarn
+	case "error":
+		level = logging.LevelError
+	default:
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("invalid log level"))
+		return
+	}
+
+	// extract start date
+	// input
+	startRaw, ok := vars["start"]
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("missing start time"))
+		return
+	}
+	// parse
+	start, err := parseTime(startRaw)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("invalid start time"))
+		return
+	}
+
+	// extract end date
+	// input
+	endRaw, ok := vars["end"]
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("missing end time"))
+		return
+	}
+	// parse
+	end, err := parseTime(endRaw)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("invalid end time"))
+		return
+	}
+
+	if end.Before(start) {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("end time must come after start time"))
+		return
+	}
+
+	logs, err := api.Storage.Logs(level, start, end)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fmt.Sprintf("unable to collect logs: %v", err)))
+		return
+	}
+
+	results := make([]map[string]interface{}, 0, len(logs))
+	for _, log := range logs {
+		result := map[string]interface{}{
+			"level":   log.Level.String(),
+			"when":    log.When,
+			"message": log.Message,
+		}
+		results = append(results, result)
+	}
+	body := map[string]interface{}{
+		"items": results,
+	}
+	bytes, err := json.Marshal(body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fmt.Sprintf("unable to marshal json: %v", err)))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(bytes)
 }

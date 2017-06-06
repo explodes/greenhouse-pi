@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -83,7 +84,7 @@ func New(storage stats.Storage, water, fan *controllers.Controller) *Api {
 }
 
 // Serve will run this server and bind to the given address
-func (api *Api) Serve(bind string) {
+func (api *Api) Serve(bind string) error {
 
 	router := mux.NewRouter()
 	router.Methods(http.MethodGet).Path("/{stat}/history/{start}/{end}").Handler(varsHandler(api.History))
@@ -101,7 +102,9 @@ func (api *Api) Serve(bind string) {
 		IdleTimeout:  idleTimeout,
 	}
 
-	api.Storage.Log(logging.LevelInfo, "serving on %s", bind)
+	if _, err := api.Storage.Log(logging.LevelInfo, "serving on %s", bind); err != nil {
+		return fmt.Errorf("error logging server startup: %v", err)
+	}
 
-	log.Fatal(srv.ListenAndServe())
+	return srv.ListenAndServe()
 }

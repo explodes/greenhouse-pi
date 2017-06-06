@@ -1,5 +1,7 @@
 package logging
 
+import "time"
+
 const (
 	LevelDebug Level = iota
 	LevelInfo
@@ -7,11 +9,19 @@ const (
 	LevelError
 )
 
+type LogLevel uint8
+
+type LogEntry struct {
+	Level   Level
+	When    time.Time
+	Message string
+}
+
 type Level uint8
 
 type Logger interface {
 	// Log records a message at a given log level
-	Log(level Level, fmt string, args ...interface{})
+	Log(level Level, fmt string, args ...interface{}) (LogEntry, error)
 }
 
 func (level Level) String() string {
