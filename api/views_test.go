@@ -348,7 +348,7 @@ func logs_OK(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 }
 
 func logs_OKwithValues(t *testing.T, a *api.Api, w *responseWriterRecorder) {
-	entry, err  := a.Storage.Log(logging.LevelDebug, "hello world")
+	entry, err := a.Storage.Log(logging.LevelDebug, "hello world")
 	if err != nil {
 		t.Fatal(err)
 	}

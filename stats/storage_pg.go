@@ -53,7 +53,7 @@ func (pg *pgStorage) Fetch(statType StatType, start, end time.Time) ([]Stat, err
 		value float64
 		when  time.Time
 	}{}
-	rows, err := pg.db.Query(`SELECT (value, timestamp) FROM stats WHERE stat = $1 AND timestamp BETWEEN $2 AND $3 ORDER BY timestamp DESC LIMIT 1000`, start, end)
+	rows, err := pg.db.Query(`SELECT value, timestamp FROM stats WHERE stat = $1 AND timestamp BETWEEN $2 AND $3 ORDER BY timestamp DESC LIMIT 1000`, statType, start, end)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching stats: %v", err)
 	}
@@ -110,7 +110,7 @@ func (pg *pgStorage) Logs(level logging.Level, start, end time.Time) ([]logging.
 		message string
 		when    time.Time
 	}{}
-	rows, err := pg.db.Query(`SELECT (message, timestamp, level) FROM logs WHERE level >= $1 AND timestamp BETWEEN $2 AND $3 ORDER BY timestamp DESC LIMIT 1000`, level, start, end)
+	rows, err := pg.db.Query(`SELECT message, timestamp, level FROM logs WHERE level >= $1 AND timestamp BETWEEN $2 AND $3 ORDER BY timestamp DESC LIMIT 1000`, level, start, end)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching logs: %v", err)
 	}
