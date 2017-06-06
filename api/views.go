@@ -20,6 +20,8 @@ func validateStat(name string) (stats.StatType, error) {
 		return stats.StatTypeTemperature, nil
 	case string(stats.StatTypeHumidity):
 		return stats.StatTypeHumidity, nil
+	case string(stats.StatTypeWater):
+		return stats.StatTypeWater, nil
 	default:
 		return stats.StatType(""), errInvalidStat
 	}
