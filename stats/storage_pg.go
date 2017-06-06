@@ -31,7 +31,7 @@ func fileExists(path string) (bool, error) {
 	return false, err
 }
 
-func NewPgStorage(conn, migrationsDir string) (Storage, error) {
+func NewPgStorage(conn string) (Storage, error) {
 	db, err := sql.Open(pgDriver, conn)
 	if err != nil {
 		return nil, fmt.Errorf("error opening database storage: %v", err)
@@ -39,13 +39,13 @@ func NewPgStorage(conn, migrationsDir string) (Storage, error) {
 	storage := &pgStorage{
 		db: db,
 	}
-	if err := storage.migrate(migrationsDir); err != nil {
+	if err := storage.migrate(); err != nil {
 		return nil, fmt.Errorf("error preparing database storage: %v", err)
 	}
 	return storage, nil
 }
 
-func (pg *pgStorage) migrate(migrationsDir string) error {
+func (pg *pgStorage) migrate() error {
 	migrations := newMigrations(pg.db)
 	if err := migrations.run(); err != nil {
 		return fmt.Errorf("error running database migrations: %v", err)

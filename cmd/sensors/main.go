@@ -127,7 +127,7 @@ func createStorage() (stats.Storage, error) {
 
 	}
 	if strings.Index(conn, "postgresql://") == 0 {
-		storage, err := stats.NewPgStorage(conn, *flagMigrationsDir)
+		storage, err := stats.NewPgStorage(conn)
 		if err != nil {
 			return nil, fmt.Errorf("error connecting to database: %v", err)
 		}
