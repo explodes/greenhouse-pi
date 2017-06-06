@@ -42,13 +42,13 @@ func main() {
 
 	scheduler := controllers.NewScheduler()
 
-	waterUnit := controllers.NewFakeUnit("fake-water")
+	waterUnit := controllers.NewFakeUnit(stats.StatTypeWater, storage)
 	waterController, err := controllers.NewController(waterUnit, storage, scheduler)
 	if err != nil {
 		log.Fatalf("unable to start water controller: %v", err)
 	}
 
-	fanUnit := controllers.NewFakeUnit("fake-fan")
+	fanUnit := controllers.NewFakeUnit(stats.StatTypeFan, storage)
 	fanController, err := controllers.NewController(fanUnit, storage, scheduler)
 	if err != nil {
 		log.Fatalf("unable to start fan controller: %v", err)

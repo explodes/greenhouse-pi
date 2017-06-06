@@ -64,8 +64,8 @@ func TestController(t *testing.T) {
 }
 
 func controller_New(t *testing.T) {
-	unit := NewFakeUnit("test")
 	storage := stats.NewFakeStatsStorage(40)
+	unit := NewFakeUnit(stats.StatType("fake"), storage)
 	scheduler := NewScheduler()
 
 	c, err := NewController(unit, storage, scheduler)

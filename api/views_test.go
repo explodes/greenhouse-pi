@@ -41,11 +41,11 @@ func apiViewTest(f func(t *testing.T, a *api.Api, w *responseWriterRecorder)) (s
 
 		scheduler := controllers.NewScheduler()
 		storage := stats.NewFakeStatsStorage(10)
-		water, err := controllers.NewController(controllers.NewFakeUnit("fake-water"), storage, scheduler)
+		water, err := controllers.NewController(controllers.NewFakeUnit(stats.StatTypeWater, storage), storage, scheduler)
 		if err != nil {
 			t.Fatal(err)
 		}
-		fan, err := controllers.NewController(controllers.NewFakeUnit("fake-fan"), storage, scheduler)
+		fan, err := controllers.NewController(controllers.NewFakeUnit(stats.StatTypeFan, storage), storage, scheduler)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -95,11 +95,11 @@ func history_OK(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 	w.Assert(t).
 		StatusEquals(t, http.StatusOK).
 		JsonBodyEquals(t, map[string]interface{}{
-		"start": start,
-		"end":   end,
-		"stat":  "temperature",
-		"items": []api.KnownStat{},
-	})
+			"start": start,
+			"end":   end,
+			"stat":  "temperature",
+			"items": []api.KnownStat{},
+		})
 }
 
 func history_OKwithValues(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -119,13 +119,13 @@ func history_OKwithValues(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 	w.Assert(t).
 		StatusEquals(t, http.StatusOK).
 		JsonBodyEquals(t, map[string]interface{}{
-		"start": start,
-		"end":   end,
-		"stat":  "temperature",
-		"items": []api.KnownStat{
-			{When: when1, Value: 1},
-			{When: when2, Value: 2},
-		}})
+			"start": start,
+			"end":   end,
+			"stat":  "temperature",
+			"items": []api.KnownStat{
+				{When: when1, Value: 1},
+				{When: when2, Value: 2},
+			}})
 }
 
 func history_MissingStat(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -176,9 +176,9 @@ func latest_OK(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 	w.Assert(t).
 		StatusEquals(t, http.StatusOK).
 		JsonBodyEquals(t, map[string]interface{}{
-		"stat":  "temperature",
-		"value": float64(0),
-	})
+			"stat":  "temperature",
+			"value": float64(0),
+		})
 }
 
 func latest_OKwithValues(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -194,9 +194,9 @@ func latest_OKwithValues(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 	w.Assert(t).
 		StatusEquals(t, http.StatusOK).
 		JsonBodyEquals(t, map[string]interface{}{
-		"stat":  "temperature",
-		"value": float64(2),
-	})
+			"stat":  "temperature",
+			"value": float64(2),
+		})
 }
 
 func latest_MissingStat(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -219,11 +219,11 @@ func status_OK(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 	w.Assert(t).
 		StatusEquals(t, http.StatusOK).
 		JsonBodyEquals(t, map[string]interface{}{
-		"water":       map[string]interface{}{"status": "off"},
-		"fan":         map[string]interface{}{"status": "off"},
-		"temperature": map[string]interface{}{"value": float64(0)},
-		"humidity":    map[string]interface{}{"value": float64(0)},
-	})
+			"water":       map[string]interface{}{"status": "off"},
+			"fan":         map[string]interface{}{"status": "off"},
+			"temperature": map[string]interface{}{"value": float64(0)},
+			"humidity":    map[string]interface{}{"value": float64(0)},
+		})
 }
 
 func status_OKwithValues(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -237,9 +237,9 @@ func status_OKwithValues(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 	w.Assert(t).
 		StatusEquals(t, http.StatusOK).
 		JsonBodyEquals(t, map[string]interface{}{
-		"water":       map[string]interface{}{"status": "off"},
-		"fan":         map[string]interface{}{"status": "off"},
-		"temperature": map[string]interface{}{"value": float64(1)},
-		"humidity":    map[string]interface{}{"value": float64(2)},
-	})
+			"water":       map[string]interface{}{"status": "off"},
+			"fan":         map[string]interface{}{"status": "off"},
+			"temperature": map[string]interface{}{"value": float64(1)},
+			"humidity":    map[string]interface{}{"value": float64(2)},
+		})
 }
