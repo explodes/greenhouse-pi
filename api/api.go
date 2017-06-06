@@ -88,6 +88,7 @@ func (api *Api) Serve(bind string) {
 	router := mux.NewRouter()
 	router.Handle("/{stat}/history/{start}/{end}", varsHandler(api.History))
 	router.Handle("/{stat}/latest", varsHandler(api.Latest))
+	router.Handle("/status", varsHandler(api.Status))
 
 	handler := cors.Default().Handler(router)
 

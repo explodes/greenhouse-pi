@@ -75,6 +75,11 @@ func TestApiView(t *testing.T) {
 		t.Run(apiViewTest(latest_OKwithValues))
 		t.Run(apiViewTest(latest_MissingStat))
 	})
+	t.Run("Status", func(t *testing.T) {
+		t.Parallel()
+		t.Run(apiViewTest(status_OK))
+		t.Run(apiViewTest(status_OKwithValues))
+	})
 }
 
 func history_OK(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -206,4 +211,35 @@ func latest_MissingStat(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 	w.Assert(t).
 		StatusEquals(t, http.StatusBadRequest).
 		StringBodyEquals(t, "missing stat")
+}
+
+func status_OK(t *testing.T, a *api.Api, w *responseWriterRecorder) {
+	a.Status(w, nil, nil)
+
+	w.Assert(t).
+		StatusEquals(t, http.StatusOK).
+		JsonBodyEquals(t, map[string]interface{}{
+			"water":       map[string]interface{}{"status": false},
+			"fan":         map[string]interface{}{"status": false},
+			"temperature": map[string]interface{}{"value": float64(0)},
+			"humidity":    map[string]interface{}{"value": float64(0)},
+		})
+}
+
+func status_OKwithValues(t *testing.T, a *api.Api, w *responseWriterRecorder) {
+	when1 := time.Now().Add(-time.Minute)
+	a.Storage.Record(stats.Stat{StatType: stats.StatTypeTemperature, When: when1, Value: 1})
+	when2 := time.Now().Add(-time.Second)
+	a.Storage.Record(stats.Stat{StatType: stats.StatTypeHumidity, When: when2, Value: 2})
+
+	a.Status(w, nil, nil)
+
+	w.Assert(t).
+		StatusEquals(t, http.StatusOK).
+		JsonBodyEquals(t, map[string]interface{}{
+			"water":       map[string]interface{}{"status": false},
+			"fan":         map[string]interface{}{"status": false},
+			"temperature": map[string]interface{}{"value": float64(1)},
+			"humidity":    map[string]interface{}{"value": float64(2)},
+		})
 }

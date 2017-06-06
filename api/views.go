@@ -166,3 +166,49 @@ func (api *Api) Latest(w http.ResponseWriter, r *http.Request, vars map[string]s
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
 }
+
+// Status returns the current status of the system
+func (api *Api) Status(w http.ResponseWriter, r *http.Request, vars map[string]string) {
+
+	results := make(map[string]interface{}, 4)
+
+	putResult := func(key, valueKey string, err error, value interface{}) {
+		if err != nil {
+			results[key] = map[string]interface{}{
+				"error": err,
+			}
+		} else {
+			results[key] = map[string]interface{}{
+				valueKey: value,
+			}
+		}
+	}
+
+	waterStatus, waterErr := api.Water.Unit.Status()
+	putResult("water", "status", waterErr, waterStatus)
+
+	fanStatus, fanErr := api.Fan.Unit.Status()
+	putResult("fan", "status", fanErr, fanStatus)
+
+	temp, tempErr := api.Storage.Latest(stats.StatTypeTemperature)
+	if tempErr == stats.ErrNoStats {
+		tempErr = nil
+	}
+	putResult("temperature", "value", tempErr, temp.Value)
+
+	humidity, humidityErr := api.Storage.Latest(stats.StatTypeHumidity)
+	if humidityErr == stats.ErrNoStats {
+		humidityErr = nil
+	}
+	putResult("humidity", "value", humidityErr, humidity.Value)
+
+	body, err := json.Marshal(results)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fmt.Sprintf("unable to marshal json: %v", err)))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(body)
+}

@@ -79,12 +79,12 @@ func controller_TurnUnitOff(t *testing.T, c *Controller, testUnit *TestUnit) {
 
 	c.turnUnitOffNow()
 
-	status, err := c.unit.Status()
+	status, err := c.Unit.Status()
 	if err != nil {
 		t.Fatal(err)
 	}
 	if status {
-		t.Error("controller did not turn off unit")
+		t.Error("controller did not turn off Unit")
 	}
 }
 
@@ -96,7 +96,7 @@ func controller_TurnUnitOn(t *testing.T, c *Controller, testUnit *TestUnit) {
 	testUnit.wg.Wait()
 
 	if testUnit.status {
-		t.Error("test unit did not turn off")
+		t.Error("test Unit did not turn off")
 	}
 
 }
