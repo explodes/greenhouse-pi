@@ -9,8 +9,6 @@ const (
 	LevelError
 )
 
-type LogLevel uint8
-
 type LogEntry struct {
 	Level   Level
 	When    time.Time
