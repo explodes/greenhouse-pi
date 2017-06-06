@@ -4,10 +4,10 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/explodes/greenhouse-pi/logging"
-	"github.com/rubenv/sql-migrate"
 )
 
 const (
@@ -16,6 +16,19 @@ const (
 
 type pgStorage struct {
 	db *sql.DB
+}
+
+// FileExists tests to see if a file exists, returning any
+// errors associated with testing the filesystem
+func fileExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		err = nil
+	}
+	return false, err
 }
 
 func NewPgStorage(conn, migrationsDir string) (Storage, error) {
@@ -33,14 +46,11 @@ func NewPgStorage(conn, migrationsDir string) (Storage, error) {
 }
 
 func (pg *pgStorage) migrate(migrationsDir string) error {
-	migrationFiles := &migrate.FileMigrationSource{
-		Dir: migrationsDir,
+	migrations := newMigrations(pg.db)
+	if err := migrations.run(); err != nil {
+		return fmt.Errorf("error running database migrations: %v", err)
 	}
-	n, err := migrate.Exec(pg.db, pgDriver, migrationFiles, migrate.Up)
-	if n > 0 {
-		pg.Log(logging.LevelInfo, "ran %d migrations", n)
-	}
-	return err
+	return nil
 }
 
 func (pg *pgStorage) Record(stat Stat) error {
