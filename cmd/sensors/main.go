@@ -1,7 +1,10 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"log"
+	"os"
 	"time"
 
 	"github.com/explodes/greenhouse-pi/api"
@@ -10,12 +13,27 @@ import (
 	"github.com/explodes/greenhouse-pi/stats"
 )
 
-const (
-	sensorFrq = 2000 * time.Millisecond
-	logFrq    = 1000 * time.Millisecond
+var (
+	flagBind      = flag.String("bind", ":8096", "Bind address for the API server")
+	flagLogFrq    = flag.Int("logfrq", defaultLogFrq, "How frequently to log current sensor values to the console. 0 disables logging.")
+	flagSensorFrq = flag.Int("sensorfrq", defaultSensorFrq, fmt.Sprintf("How frequently to read sensor values. Minimum %d", minSensorFreq))
 )
 
+const (
+	defaultSensorFrq = 2000
+	defaultLogFrq    = 2000
+	minSensorFreq    = 100
+)
+
+func init() {
+	flag.Parse()
+}
+
 func main() {
+	validateFlags()
+
+	sensorFrq := time.Duration(*flagSensorFrq) * time.Millisecond
+
 	thermometer := sensors.NewFakeThermometer(sensorFrq)
 	hygrometer := sensors.NewFakeHygrometer(sensorFrq)
 	storage := stats.NewFakeStatsStorage(40)
@@ -29,11 +47,32 @@ func main() {
 	go sensorMonitor.Begin()
 	go logStatsLoop(storage)
 
-	api.New(storage).Serve(":8096")
+	api.New(storage).Serve(*flagBind)
+}
+
+func validateFlags() {
+	valid := true
+	if *flagBind == "" {
+		log.Printf("invalid bind address: %s", *flagBind)
+		valid = false
+	}
+	if *flagLogFrq < 0 {
+		log.Printf("logfrq must be a positive number")
+		valid = false
+	}
+	if *flagSensorFrq < minSensorFreq {
+		log.Printf("sensors value is invalid, or is too small. must be at least %dms", minSensorFreq)
+		valid = false
+	}
+
+	if !valid {
+		os.Exit(1)
+	}
 }
 
 func logStatsLoop(storage stats.Storage) {
-	logTimer := time.NewTicker(logFrq).C
+	frq := time.Duration(*flagLogFrq) * time.Millisecond
+	logTimer := time.NewTicker(frq).C
 	for {
 		select {
 		case <-logTimer:
