@@ -32,7 +32,7 @@ func NewPgStorage(conn string) (Storage, error) {
 }
 
 func (pg *pgStorage) migrate() error {
-	return migrateDatabase(pg.db)
+	return migratePgDatabase(pg.db)
 }
 
 func (pg *pgStorage) Record(stat Stat) error {
@@ -42,8 +42,8 @@ func (pg *pgStorage) Record(stat Stat) error {
 
 func (pg *pgStorage) Fetch(statType StatType, start, end time.Time) ([]Stat, error) {
 	scan := struct {
-		value float64
-		when  time.Time
+		value     float64
+		timestamp time.Time
 	}{}
 	rows, err := pg.db.Query(`SELECT value, timestamp FROM stats WHERE stat = $1 AND timestamp BETWEEN $2 AND $3 ORDER BY timestamp DESC LIMIT 1000`, statType, start, end)
 	if err != nil {
@@ -53,13 +53,13 @@ func (pg *pgStorage) Fetch(statType StatType, start, end time.Time) ([]Stat, err
 
 	results := make([]Stat, 0, 100)
 	for rows.Next() {
-		if err := rows.Scan(&scan.value, &scan.when); err != nil {
+		if err := rows.Scan(&scan.value, &scan.timestamp); err != nil {
 			return nil, fmt.Errorf("error scanning stats: %v", err)
 		}
 		entry := Stat{
 			StatType: statType,
 			Value:    scan.value,
-			When:     scan.when,
+			When:     scan.timestamp,
 		}
 		results = append(results, entry)
 	}

@@ -16,12 +16,13 @@ import (
 	"github.com/explodes/greenhouse-pi/sensors"
 	"github.com/explodes/greenhouse-pi/stats"
 	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var (
 	flagBind      = flag.String("bind", "0.0.0.0:8096", "Bind address for the API server")
 	flagSensorFrq = flag.Int("sensorfrq", defaultSensorFrq, fmt.Sprintf("How frequently to read sensor values. Minimum %d", minSensorFreq))
-	flagDbConn    = flag.String("db", "mock://fake/40", "Database connection string (postgres: postgresql://user:pass@host/db)")
+	flagDbConn    = flag.String("db", "mock://fake/40", "Database connection string (postgres: postgresql://user:pass@host/db, fake://mock/40, sqlite3:///usr/local/greenhouse/greenhouse.db)")
 	flagThermConn = flag.String("therm", "mock://fake", "Temperature sensor connection string")
 	flagHygroConn = flag.String("hygro", "mock://fake", "Humidity sensor connection string")
 	flagWaterConn = flag.String("water", "mock://fake", "Water unit connection string")
@@ -128,6 +129,14 @@ func createStorage() (stats.Storage, error) {
 	}
 	if strings.Index(conn, "postgresql://") == 0 {
 		storage, err := stats.NewPgStorage(conn)
+		if err != nil {
+			return nil, fmt.Errorf("error connecting to database: %v", err)
+		}
+		return storage, nil
+	}
+	if strings.Index(conn, "sqlite3://") == 0 {
+		conn = conn[len("sqlite3://"):]
+		storage, err := stats.NewSqliteStorage(conn)
 		if err != nil {
 			return nil, fmt.Errorf("error connecting to database: %v", err)
 		}

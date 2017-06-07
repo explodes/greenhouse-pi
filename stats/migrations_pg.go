@@ -6,32 +6,32 @@ import (
 	"github.com/explodes/migrations-go"
 )
 
-func migrateDatabase(db *sql.DB) error {
-	migrator := migrations.NewMigrator(db, storageMigrations{})
-	return migrator.MigrateToVersion(versionLatest)
+func migratePgDatabase(db *sql.DB) error {
+	migrator := migrations.NewMigrator(db, storagePgMigrations{})
+	return migrator.MigrateToVersion(versionPgLatest)
 }
 
-type storageMigrations struct{}
+type storagePgMigrations struct{}
 
-func (storageMigrations) GetMigration(version int) migrations.Migration {
+func (storagePgMigrations) GetMigration(version int) migrations.Migration {
 	switch version {
-	case versionInitial:
+	case versionPgInitial:
 		// empty string, downgrade not supported
-		return migrations.NewSimpleMigration("initial", upgradeInitial, downgradeInitial)
+		return migrations.NewSimpleMigration("initial", upgradePgInitial, downgradePgInitial)
 	}
 	return nil
 }
 
 const (
-	versionInitial = 1
-	versionLatest  = versionInitial
+	versionPgInitial = 1
+	versionPgLatest  = versionPgInitial
 )
 
 const (
-	upgradeInitial = `
+	upgradePgInitial = `
 CREATE TABLE stats (
   id        BIGSERIAL PRIMARY KEY    NOT NULL,
-  stat      VARCHAR(24)              NOT NULL,
+  stat      INTEGER                  NOT NULL,
   value     FLOAT                    NOT NULL,
   timestamp TIMESTAMP WITH TIME ZONE NOT NULL
 );
@@ -48,7 +48,7 @@ CREATE INDEX idx_logs_level
   ON logs (level);
 
   `
-	downgradeInitial = `
+	downgradePgInitial = `
 DROP TABLE logs;
 DROP TABLE stats;
 `

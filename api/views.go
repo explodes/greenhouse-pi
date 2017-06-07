@@ -18,16 +18,16 @@ var (
 
 func validateStat(name string) (stats.StatType, error) {
 	switch name {
-	case string(stats.StatTypeTemperature):
+	case stats.StatTypeTemperature.String():
 		return stats.StatTypeTemperature, nil
-	case string(stats.StatTypeHumidity):
+	case stats.StatTypeHumidity.String():
 		return stats.StatTypeHumidity, nil
-	case string(stats.StatTypeWater):
+	case stats.StatTypeWater.String():
 		return stats.StatTypeWater, nil
-	case string(stats.StatTypeFan):
+	case stats.StatTypeFan.String():
 		return stats.StatTypeFan, nil
 	default:
-		return stats.StatType(""), errInvalidStat
+		return stats.StatType(0), errInvalidStat
 	}
 }
 
@@ -120,7 +120,7 @@ func (api *Api) History(w http.ResponseWriter, r *http.Request, vars map[string]
 	body, err := json.Marshal(map[string]interface{}{
 		"start": start,
 		"end":   end,
-		"stat":  statType,
+		"stat":  statType.String(),
 		"items": convertStatsToResponse(results),
 	})
 	if err != nil {
@@ -164,7 +164,7 @@ func (api *Api) Latest(w http.ResponseWriter, r *http.Request, vars map[string]s
 	}
 
 	body, err := json.Marshal(map[string]interface{}{
-		"stat":  statType,
+		"stat":  statType.String(),
 		"value": value,
 	})
 	if err != nil {
@@ -236,9 +236,9 @@ func (api *Api) Schedule(w http.ResponseWriter, r *http.Request, vars map[string
 
 	var controller *controllers.Controller
 	switch statTypeRaw {
-	case string(stats.StatTypeWater):
+	case stats.StatTypeWater.String():
 		controller = api.Water
-	case string(stats.StatTypeFan):
+	case stats.StatTypeFan.String():
 		controller = api.Fan
 	default:
 		w.WriteHeader(http.StatusBadRequest)
