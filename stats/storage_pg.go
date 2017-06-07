@@ -32,11 +32,7 @@ func NewPgStorage(conn string) (Storage, error) {
 }
 
 func (pg *pgStorage) migrate() error {
-	migrations := newMigrations(pg.db)
-	if err := migrations.run(); err != nil {
-		return fmt.Errorf("error running database migrations: %v", err)
-	}
-	return nil
+	return migrateDatabase(pg.db)
 }
 
 func (pg *pgStorage) Record(stat Stat) error {

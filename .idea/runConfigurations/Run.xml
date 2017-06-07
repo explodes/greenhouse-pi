@@ -1,8 +1,11 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Run" type="GoRunFileConfiguration" factoryName="Go Single File">
+  <configuration default="false" name="Run" type="GoApplicationRunConfiguration" factoryName="Go Application">
     <module name="greenhouse-pi" />
     <working_directory value="$PROJECT_DIR$/" />
+    <go_parameters value="-i" />
+    <parameters value="-db &quot;postgresql://greenhouse:greenhouse@localhost/greenhouse?sslmode=disable&quot;" />
     <filePath value="$PROJECT_DIR$/cmd/sensors/main.go" />
+    <kind value="FILE" />
     <method />
   </configuration>
 </component>
