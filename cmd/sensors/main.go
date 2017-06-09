@@ -57,8 +57,7 @@ func init() {
 func mapEnvironmentVariableString(env string, flag *string) {
 	value := os.Getenv(env)
 	if value != "" {
-		flag = &value
-		log.Printf("using %s as %s", value, env)
+		*flag = value
 	}
 }
 
@@ -69,8 +68,7 @@ func mapEnvironmentVariableInt(env string, flag *int) {
 		if err != nil {
 			log.Fatalf("Unable to parse %s as int, got %s", env, value)
 		}
-		flag = &valueInt
-		log.Printf("using %s as %s", value, env)
+		*flag = valueInt
 	}
 }
 
