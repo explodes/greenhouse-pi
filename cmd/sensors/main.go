@@ -20,26 +20,59 @@ import (
 )
 
 var (
-	flagBind      = flag.String("bind", "0.0.0.0:8096", "Bind address for the API server")
-	flagSensorFrq = flag.Int("sensorfrq", defaultSensorFrq, fmt.Sprintf("How frequently to read sensor values. Minimum %d", minSensorFreq))
-	flagDbConn    = flag.String("db", "mock://fake/40", "Database connection string (postgres: postgresql://user:pass@host/db, fake://mock/40, sqlite3:///usr/local/greenhouse/greenhouse.db)")
-	flagThermConn = flag.String("therm", "mock://fake", "Temperature sensor connection string")
-	flagHygroConn = flag.String("hygro", "mock://fake", "Humidity sensor connection string")
-	flagWaterConn = flag.String("water", "mock://fake", "Water unit connection string")
-	flagFanConn   = flag.String("fan", "mock://fake", "Fan unit connection string")
+	flagBind      = flag.String("bind", "0.0.0.0:8096", fmt.Sprintf("Bind address for the API server [%s]", envBind))
+	flagSensorFrq = flag.Int("sensorfrq", defaultSensorFrq, fmt.Sprintf("How frequently to read sensor values. Minimum %d [%s]", minSensorFreq, envSensorFrq))
+	flagDbConn    = flag.String("db", "mock://fake/40", fmt.Sprintf("Database connection string (postgres: postgresql://user:pass@host/db, fake://mock/40, sqlite3:///usr/local/greenhouse/greenhouse.db) [%s]", envDbConn))
+	flagThermConn = flag.String("therm", "mock://fake", fmt.Sprintf("Temperature sensor connection string [%s]", envThermConn))
+	flagHygroConn = flag.String("hygro", "mock://fake", fmt.Sprintf("Humidity sensor connection string [%s]", envHygroConn))
+	flagWaterConn = flag.String("water", "mock://fake", fmt.Sprintf("Water unit connection string [%s]", envWaterConn))
+	flagFanConn   = flag.String("fan", "mock://fake", fmt.Sprintf("Fan unit connection string [%s]", envFanConn))
 )
 
 const (
 	defaultSensorFrq = 30000
 	minSensorFreq    = 2000
+
+	envBind      = "GH_BIND"
+	envSensorFrq = "GH_SENSOR_FRQ"
+	envDbConn    = "GH_DATABASE"
+	envThermConn = "GH_THERMOMETER"
+	envHygroConn = "GH_HYGROMETER"
+	envWaterConn = "GH_WATER"
+	envFanConn   = "GH_FAN"
 )
 
 func init() {
 	flag.Parse()
+	mapEnvironmentVariableString(envBind, flagBind)
+	mapEnvironmentVariableInt(envSensorFrq, flagSensorFrq)
+	mapEnvironmentVariableString(envDbConn, flagDbConn)
+	mapEnvironmentVariableString(envThermConn, flagThermConn)
+	mapEnvironmentVariableString(envHygroConn, flagHygroConn)
+	mapEnvironmentVariableString(envWaterConn, flagWaterConn)
+	mapEnvironmentVariableString(envFanConn, flagFanConn)
+	validateConfiguration()
+}
+
+func mapEnvironmentVariableString(env string, flag *string) {
+	value := os.Getenv(env)
+	if value != "" {
+		flag = &value
+	}
+}
+
+func mapEnvironmentVariableInt(env string, flag *int) {
+	value := os.Getenv(env)
+	if value != "" {
+		valueInt, err := strconv.Atoi(value)
+		if err != nil {
+			log.Fatalf("Unable to parse %s as int, got %s", env, value)
+		}
+		flag = &valueInt
+	}
 }
 
 func main() {
-	validateFlags()
 
 	storage, err := createStorage()
 	if err != nil {
@@ -98,7 +131,7 @@ func main() {
 	log.Fatal(api.New(storage, waterController, fanController).Serve(*flagBind))
 }
 
-func validateFlags() {
+func validateConfiguration() {
 	valid := true
 	if *flagBind == "" {
 		log.Printf("invalid bind address: %s", *flagBind)
