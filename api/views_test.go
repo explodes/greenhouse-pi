@@ -157,7 +157,7 @@ func history_MissingStat(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 
 	w.Assert(t).
 		StatusEquals(http.StatusBadRequest).
-		StringBodyEquals("missing stat")
+		StringBodyEquals(`{"error":"missing stat"}`)
 }
 
 func history_MissingStart(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -170,7 +170,7 @@ func history_MissingStart(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 
 	w.Assert(t).
 		StatusEquals(http.StatusBadRequest).
-		StringBodyEquals("missing start time")
+		StringBodyEquals(`{"error":"missing start time"}`)
 }
 
 func history_MissingEnd(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -183,7 +183,7 @@ func history_MissingEnd(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 
 	w.Assert(t).
 		StatusEquals(http.StatusBadRequest).
-		StringBodyEquals("missing end time")
+		StringBodyEquals(`{"error":"missing end time"}`)
 }
 
 func latest_OK(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -228,7 +228,7 @@ func latest_MissingStat(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 
 	w.Assert(t).
 		StatusEquals(http.StatusBadRequest).
-		StringBodyEquals("missing stat")
+		StringBodyEquals(`{"error":"missing stat"}`)
 }
 
 func status_OK(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -286,7 +286,7 @@ func schedule_MissingStat(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 
 	w.Assert(t).
 		StatusEquals(http.StatusBadRequest).
-		StringBodyEquals("missing stat")
+		StringBodyEquals(`{"error":"missing stat"}`)
 }
 
 func schedule_invalidStat(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -301,7 +301,7 @@ func schedule_invalidStat(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 
 	w.Assert(t).
 		StatusEquals(http.StatusBadRequest).
-		StringBodyEquals("invalid stat type")
+		StringBodyEquals(`{"error":"invalid stat type"}`)
 }
 
 func schedule_MissingStart(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -314,7 +314,7 @@ func schedule_MissingStart(t *testing.T, a *api.Api, w *responseWriterRecorder) 
 
 	w.Assert(t).
 		StatusEquals(http.StatusBadRequest).
-		StringBodyEquals("missing start time")
+		StringBodyEquals(`{"error":"missing start time"}`)
 }
 
 func schedule_MissingEnd(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -327,7 +327,7 @@ func schedule_MissingEnd(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 
 	w.Assert(t).
 		StatusEquals(http.StatusBadRequest).
-		StringBodyEquals("missing end time")
+		StringBodyEquals(`{"error":"missing end time"}`)
 }
 
 func logs_OK(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -384,7 +384,7 @@ func logs_MissingLevel(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 
 	w.Assert(t).
 		StatusEquals(http.StatusBadRequest).
-		StringBodyEquals("missing log level")
+		StringBodyEquals(`{"error":"missing log level"}`)
 }
 
 func logs_InvalidLevel(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -399,7 +399,7 @@ func logs_InvalidLevel(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 
 	w.Assert(t).
 		StatusEquals(http.StatusBadRequest).
-		StringBodyEquals("invalid log level")
+		StringBodyEquals(`{"error":"invalid log level"}`)
 }
 
 func logs_MissingStart(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -412,7 +412,7 @@ func logs_MissingStart(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 
 	w.Assert(t).
 		StatusEquals(http.StatusBadRequest).
-		StringBodyEquals("missing start time")
+		StringBodyEquals(`{"error":"missing start time"}`)
 }
 
 func logs_MissingEnd(t *testing.T, a *api.Api, w *responseWriterRecorder) {
@@ -425,5 +425,5 @@ func logs_MissingEnd(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 
 	w.Assert(t).
 		StatusEquals(http.StatusBadRequest).
-		StringBodyEquals("missing end time")
+		StringBodyEquals(`{"error":"missing end time"}`)
 }
