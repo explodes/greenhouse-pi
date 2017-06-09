@@ -21,7 +21,7 @@ import (
 
 var (
 	flagBind      = flag.String("bind", "0.0.0.0:8096", fmt.Sprintf("Bind address for the API server [%s]", envBind))
-	flagSensorFrq = flag.Int("sensorfrq", defaultSensorFrq, fmt.Sprintf("How frequently to read sensor values. Minimum %d [%s]", minSensorFreq, envSensorFrq))
+	flagSensorFrq = flag.Int("sensorfrq", defaultSensorFrq, fmt.Sprintf("How frequently to read sensor values in milliseconds. Minimum %dms [%s]", minSensorFreq, envSensorFrq))
 	flagDbConn    = flag.String("db", "mock://fake/40", fmt.Sprintf("Database connection string (postgres: postgresql://user:pass@host/db, fake://mock/40, sqlite3:///usr/local/greenhouse/greenhouse.db) [%s]", envDbConn))
 	flagThermConn = flag.String("therm", "mock://fake", fmt.Sprintf("Temperature sensor connection string [%s]", envThermConn))
 	flagHygroConn = flag.String("hygro", "mock://fake", fmt.Sprintf("Humidity sensor connection string [%s]", envHygroConn))
