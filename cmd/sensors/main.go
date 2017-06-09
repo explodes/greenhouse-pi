@@ -67,7 +67,6 @@ func mapEnvironmentVariableInt(env string, flag *int) {
 			log.Fatalf("Unable to parse %s as int, got %s", env, value)
 		}
 		*flag = valueInt
-		log.Printf("using %s as %s", value, env)
 	}
 }
 
