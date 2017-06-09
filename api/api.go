@@ -2,7 +2,6 @@ package api
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -10,7 +9,6 @@ import (
 	"github.com/explodes/greenhouse-pi/logging"
 	"github.com/explodes/greenhouse-pi/stats"
 	"github.com/gorilla/mux"
-	"github.com/rs/cors"
 )
 
 const (
@@ -41,36 +39,17 @@ type KnownStat struct {
 	Value float64   `json:"value"`
 }
 
-type statusRecorder struct {
-	w      http.ResponseWriter
-	status int
-}
-
-func (sr *statusRecorder) Header() http.Header {
-	return sr.w.Header()
-}
-
-func (sr *statusRecorder) Write(buf []byte) (int, error) {
-	return sr.w.Write(buf)
-}
-
-func (sr *statusRecorder) WriteHeader(status int) {
-	sr.status = status
-	sr.w.WriteHeader(status)
-}
-
 type varsHandler func(w http.ResponseWriter, r *http.Request, vars map[string]string)
 
 func (vh varsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	sr := &statusRecorder{w: w, status: -1}
 	vars := mux.Vars(r)
+	vh(w, r, vars)
+}
 
-	start := time.Now()
-
-	vh(sr, r, vars)
-
-	end := time.Now()
-	log.Printf("--> %d %s %s %s", sr.status, r.Method, r.URL, end.Sub(start))
+func makeApiHandler(f func(w http.ResponseWriter, r *http.Request, vars map[string]string)) http.Handler {
+	withVars := varsHandler(f)
+	withGzip := CompressMiddleware(withVars)
+	return withGzip
 }
 
 // New creates a new Api instance with the given storage
@@ -93,7 +72,7 @@ func (api *Api) Serve(bind string) error {
 	router.Methods(http.MethodPost).Path("/{stat}/schedule/{start}/{end}").Handler(varsHandler(api.Status))
 	router.Methods(http.MethodGet).Path("/logs/{level}/{start}/{end}").Handler(varsHandler(api.Logs))
 
-	handler := cors.Default().Handler(router)
+	handler := WrapHandlerInMiddleware(router, CORSMiddleware, CompressMiddleware, LoggingMiddleware, RecoveryMiddleware)
 
 	srv := &http.Server{
 		Handler:      handler,

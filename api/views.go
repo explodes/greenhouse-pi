@@ -179,7 +179,6 @@ func (api *Api) Latest(w http.ResponseWriter, r *http.Request, vars map[string]s
 
 // Status returns the current status of the system
 func (api *Api) Status(w http.ResponseWriter, r *http.Request, vars map[string]string) {
-
 	results := make(map[string]interface{}, 4)
 
 	putResult := func(key, valueKey string, err error, value interface{}) {
