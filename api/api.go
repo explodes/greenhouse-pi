@@ -48,12 +48,6 @@ func (vh varsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	vh(w, r, vars)
 }
 
-func makeApiHandler(f func(w http.ResponseWriter, r *http.Request, vars map[string]string)) http.Handler {
-	withVars := varsHandler(f)
-	withGzip := CompressMiddleware(withVars)
-	return withGzip
-}
-
 // New creates a new Api instance with the given storage
 func New(storage stats.Storage, water, fan *controllers.Controller) *Api {
 	return &Api{
