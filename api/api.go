@@ -14,6 +14,8 @@ import (
 const (
 	rwTimeout   = 15 * time.Second
 	idleTimeout = 60 * time.Second
+
+	internalServerErrorMessage = `{"error":"internal server error"}`
 )
 
 var (
@@ -72,7 +74,7 @@ func (api *Api) Serve(bind string) error {
 	router.Methods(http.MethodPost).Path("/{stat}/schedule/{start}/{end}").Handler(varsHandler(api.Status))
 	router.Methods(http.MethodGet).Path("/logs/{level}/{start}/{end}").Handler(varsHandler(api.Logs))
 
-	handler := WrapHandlerInMiddleware(router, CORSMiddleware, CompressMiddleware, LoggingMiddleware, RecoveryMiddleware)
+	handler := WrapHandlerInMiddleware(router, CORSMiddleware, CompressMiddleware, JSONContentTypeMiddleware, LoggingMiddleware, RecoveryMiddleware(internalServerErrorMessage))
 
 	srv := &http.Server{
 		Handler:      handler,

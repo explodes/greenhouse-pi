@@ -61,14 +61,14 @@ func (api *Api) History(w http.ResponseWriter, r *http.Request, vars map[string]
 	statTypeRaw, ok := vars["stat"]
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("missing stat"))
+		w.Write([]byte(`{"error":"missing stat"}`))
 		return
 	}
 	// parse
 	statType, err := validateStat(statTypeRaw)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid stat type"))
+		w.Write([]byte(`{"error":"invalid stat type"}`))
 		return
 	}
 
@@ -77,14 +77,14 @@ func (api *Api) History(w http.ResponseWriter, r *http.Request, vars map[string]
 	startRaw, ok := vars["start"]
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("missing start time"))
+		w.Write([]byte(`{"error":"missing start time"}`))
 		return
 	}
 	// parse
 	start, err := parseTime(startRaw)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid start time"))
+		w.Write([]byte(`{"error":"invalid start time"}`))
 		return
 	}
 
@@ -93,20 +93,20 @@ func (api *Api) History(w http.ResponseWriter, r *http.Request, vars map[string]
 	endRaw, ok := vars["end"]
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("missing end time"))
+		w.Write([]byte(`{"error":"missing end time"}`))
 		return
 	}
 	// parse
 	end, err := parseTime(endRaw)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid end time"))
+		w.Write([]byte(`{"error":"invalid end time"}`))
 		return
 	}
 
 	if end.Before(start) {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("end time must come after start time"))
+		w.Write([]byte(`{"error":"end time must come after start time"}`))
 		return
 	}
 
@@ -140,14 +140,14 @@ func (api *Api) Latest(w http.ResponseWriter, r *http.Request, vars map[string]s
 	statTypeRaw, ok := vars["stat"]
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("missing stat"))
+		w.Write([]byte(`{"error":"missing stat"}`))
 		return
 	}
 	// parse
 	statType, err := validateStat(statTypeRaw)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid stat type"))
+		w.Write([]byte(`{"error":"invalid stat type"}`))
 		return
 	}
 
@@ -229,7 +229,7 @@ func (api *Api) Schedule(w http.ResponseWriter, r *http.Request, vars map[string
 	statTypeRaw, ok := vars["stat"]
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("missing stat"))
+		w.Write([]byte(`{"error":"missing stat"}`))
 		return
 	}
 
@@ -241,7 +241,7 @@ func (api *Api) Schedule(w http.ResponseWriter, r *http.Request, vars map[string
 		controller = api.Fan
 	default:
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid stat type"))
+		w.Write([]byte(`{"error":"invalid stat type"}`))
 		return
 	}
 
@@ -250,14 +250,14 @@ func (api *Api) Schedule(w http.ResponseWriter, r *http.Request, vars map[string
 	startRaw, ok := vars["start"]
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("missing start time"))
+		w.Write([]byte(`{"error":"missing start time"}`))
 		return
 	}
 	// parse
 	start, err := parseTime(startRaw)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid start time"))
+		w.Write([]byte(`{"error":"invalid start time"}`))
 		return
 	}
 
@@ -266,26 +266,26 @@ func (api *Api) Schedule(w http.ResponseWriter, r *http.Request, vars map[string
 	endRaw, ok := vars["end"]
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("missing end time"))
+		w.Write([]byte(`{"error":"missing end time"}`))
 		return
 	}
 	// parse
 	end, err := parseTime(endRaw)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid end time"))
+		w.Write([]byte(`{"error":"invalid end time"}`))
 		return
 	}
 
 	if end.Before(start) {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("end time must come after start time"))
+		w.Write([]byte(`{"error":"end time must come after start time"}`))
 		return
 	}
 	now := time.Now()
 	if start.Before(now) {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("start time must be in the future"))
+		w.Write([]byte(`{"error":"start time must be in the future"}`))
 		return
 	}
 
@@ -304,7 +304,7 @@ func (api *Api) Logs(w http.ResponseWriter, r *http.Request, vars map[string]str
 	levelRaw, ok := vars["level"]
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("missing log level"))
+		w.Write([]byte(`{"error":"missing log level"}`))
 		return
 	}
 	var level logging.Level
@@ -319,7 +319,7 @@ func (api *Api) Logs(w http.ResponseWriter, r *http.Request, vars map[string]str
 		level = logging.LevelError
 	default:
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid log level"))
+		w.Write([]byte(`{"error":"invalid log level"}`))
 		return
 	}
 
@@ -328,14 +328,14 @@ func (api *Api) Logs(w http.ResponseWriter, r *http.Request, vars map[string]str
 	startRaw, ok := vars["start"]
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("missing start time"))
+		w.Write([]byte(`{"error":"missing start time"}`))
 		return
 	}
 	// parse
 	start, err := parseTime(startRaw)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid start time"))
+		w.Write([]byte(`{"error":"invalid start time"}`))
 		return
 	}
 
@@ -344,20 +344,20 @@ func (api *Api) Logs(w http.ResponseWriter, r *http.Request, vars map[string]str
 	endRaw, ok := vars["end"]
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("missing end time"))
+		w.Write([]byte(`{"error":"missing end time"}`))
 		return
 	}
 	// parse
 	end, err := parseTime(endRaw)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid end time"))
+		w.Write([]byte(`{"error":"invalid end time"}`))
 		return
 	}
 
 	if end.Before(start) {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("end time must come after start time"))
+		w.Write([]byte(`{"error":"end time must come after start time"}`))
 		return
 	}
 

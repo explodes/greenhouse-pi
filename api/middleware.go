@@ -8,6 +8,11 @@ import (
 	"github.com/gorilla/handlers"
 )
 
+const (
+	headerContentType = "Content-Type"
+	contentTypeJson   = "application/json"
+)
+
 // Middleware is a function that wraps and http.Handler to perform some
 // kind of extra functionality, like providing gzip support, or logging
 type Middleware func(http.Handler) http.Handler
@@ -59,16 +64,36 @@ func CORSMiddleware(fn http.Handler) http.Handler {
 }
 
 // RecoveryMiddleware will recover from a panic during the response
-func RecoveryMiddleware(fn http.Handler) http.Handler {
-	handlerFunc := func(w http.ResponseWriter, r *http.Request) {
-		defer func() {
-			if err := recover(); err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte("internal server error"))
-				log.Printf("ERROR: 500 %s %s", r.Method, r.URL)
-			}
-		}()
-		fn.ServeHTTP(w, r)
+func RecoveryMiddleware(message string) Middleware {
+	return func(fn http.Handler) http.Handler {
+		handlerFunc := func(w http.ResponseWriter, r *http.Request) {
+			defer func() {
+				if err := recover(); err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write([]byte(message))
+					log.Printf("ERROR: 500 %s %s", r.Method, r.URL)
+				}
+			}()
+			fn.ServeHTTP(w, r)
+		}
+		return http.HandlerFunc(handlerFunc)
 	}
-	return http.HandlerFunc(handlerFunc)
+}
+
+// ContentTypeMiddleware will set the default Content-Type
+// header of responses
+func ContentTypeMiddleware(contentType string) Middleware {
+	return func(fn http.Handler) http.Handler {
+		handlerFunc := func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set(headerContentType, contentType)
+			fn.ServeHTTP(w, r)
+		}
+		return http.HandlerFunc(handlerFunc)
+	}
+}
+
+// JSONContentTypeMiddleware will set the default Content-Type
+// to application/json
+func JSONContentTypeMiddleware(fn http.Handler) http.Handler {
+	return ContentTypeMiddleware(contentTypeJson)(fn)
 }
