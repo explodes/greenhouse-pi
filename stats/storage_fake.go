@@ -123,3 +123,7 @@ func (ss *fakeStatsStorage) Logs(level logging.Level, start, end time.Time) ([]l
 
 	return filtered, nil
 }
+
+func (ss *fakeStatsStorage) Close() error {
+	return nil
+}

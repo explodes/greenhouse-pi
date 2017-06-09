@@ -41,3 +41,7 @@ func (f *fakeHygrometer) nextTemp() Humidity {
 func (f *fakeHygrometer) Read() <-chan Humidity {
 	return f.results
 }
+
+func (f *fakeHygrometer) Close() error {
+	return nil
+}

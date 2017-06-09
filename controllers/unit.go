@@ -21,4 +21,7 @@ type Unit interface {
 
 	// Whether or not this Unit is on
 	Status() (UnitStatus, error)
+
+	// Close closes this Unit
+	Close() error
 }

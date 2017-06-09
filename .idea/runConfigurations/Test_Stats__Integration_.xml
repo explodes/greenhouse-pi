@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Test Stats (Integration)" type="GoTestRunConfiguration" factoryName="Go Test">
+    <module name="greenhouse-pi" />
+    <working_directory value="$PROJECT_DIR$" />
+    <go_parameters value="-i -tags &quot;integration&quot;" />
+    <envs>
+      <env name="TEST_PG_CONNECTION" value="postgresql://gh_test:gh_test@localhost/gh_test" />
+    </envs>
+    <framework value="gotest" />
+    <kind value="PACKAGE" />
+    <package value="github.com/explodes/greenhouse-pi/stats" />
+    <directory value="$PROJECT_DIR$/api" />
+    <filePath value="$PROJECT_DIR$" />
+    <method />
+  </configuration>
+</component>

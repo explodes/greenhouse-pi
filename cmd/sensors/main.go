@@ -6,15 +6,13 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/explodes/greenhouse-pi/api"
+	"github.com/explodes/greenhouse-pi/cmd/builder"
 	"github.com/explodes/greenhouse-pi/controllers"
 	"github.com/explodes/greenhouse-pi/logging"
 	"github.com/explodes/greenhouse-pi/monitor"
-	"github.com/explodes/greenhouse-pi/sensors"
-	"github.com/explodes/greenhouse-pi/stats"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -69,25 +67,30 @@ func mapEnvironmentVariableInt(env string, flag *int) {
 			log.Fatalf("Unable to parse %s as int, got %s", env, value)
 		}
 		*flag = valueInt
+		log.Printf("using %s as %s", value, env)
 	}
 }
 
 func main() {
 
-	storage, err := createStorage()
+	storage, err := builder.CreateStorage(*flagDbConn)
 	if err != nil {
 		log.Fatalf("error creating storage: %v", err)
 	}
+	defer storage.Close()
 
 	sensorFrq := time.Duration(*flagSensorFrq) * time.Millisecond
-	thermometer, err := createThermometer(sensorFrq)
+	thermometer, err := builder.CreateThermometer(*flagThermConn, sensorFrq)
 	if err != nil {
 		log.Fatalf("error creating thermometer: %v", err)
 	}
-	hygrometer, err := createHygrometer(sensorFrq)
+	defer thermometer.Close()
+
+	hygrometer, err := builder.CreateHygrometer(*flagHygroConn, sensorFrq)
 	if err != nil {
 		log.Fatalf("error creating hygrometer: %v", err)
 	}
+	defer hygrometer.Close()
 
 	if _, err := storage.Log(logging.LevelInfo, "sensors startup"); err != nil {
 		log.Fatalf("error logging sensor startup: %v", err)
@@ -95,19 +98,23 @@ func main() {
 
 	scheduler := controllers.NewScheduler()
 
-	waterUnit, err := createWaterUnit(storage)
+	waterUnit, err := builder.CreateWaterUnit(*flagWaterConn, storage)
 	if err != nil {
 		log.Fatalf("error creating water unit: %v", err)
 	}
+	defer waterUnit.Close()
+
 	waterController, err := controllers.NewController(waterUnit, storage, scheduler)
 	if err != nil {
 		log.Fatalf("unable to start water controller: %v", err)
 	}
 
-	fanUnit, err := createFanUnit(storage)
+	fanUnit, err := builder.CreateFanUnit(*flagFanConn, storage)
 	if err != nil {
 		log.Fatalf("error creating fan unit: %v", err)
 	}
+	defer fanUnit.Close()
+
 	fanController, err := controllers.NewController(fanUnit, storage, scheduler)
 	if err != nil {
 		log.Fatalf("unable to start fan controller: %v", err)
@@ -144,68 +151,4 @@ func validateConfiguration() {
 	if !valid {
 		os.Exit(1)
 	}
-}
-
-func createStorage() (stats.Storage, error) {
-	conn := *flagDbConn
-	if strings.Index(conn, "mock://") == 0 {
-		parts := strings.Split(conn, "/")
-		if len(parts) != 4 || parts[2] != "fake" {
-			return nil, fmt.Errorf("bad fake-storage connection, expected mock://fake/40: %s", conn)
-		}
-		limit, err := strconv.Atoi(parts[3])
-		if err != nil {
-			return nil, fmt.Errorf("bad fake-storage storage limit: %s", parts[4])
-		}
-		return stats.NewFakeStatsStorage(limit), nil
-
-	}
-	if strings.Index(conn, "postgresql://") == 0 {
-		storage, err := stats.NewPgStorage(conn)
-		if err != nil {
-			return nil, fmt.Errorf("error connecting to database: %v", err)
-		}
-		return storage, nil
-	}
-	if strings.Index(conn, "sqlite3://") == 0 {
-		conn = conn[len("sqlite3://"):]
-		storage, err := stats.NewSqliteStorage(conn)
-		if err != nil {
-			return nil, fmt.Errorf("error connecting to database: %v", err)
-		}
-		return storage, nil
-	}
-	return nil, fmt.Errorf("unknown database system: %s", conn)
-}
-
-func createThermometer(frq time.Duration) (sensors.Thermometer, error) {
-	conn := *flagThermConn
-	if conn == "mock://fake" {
-		return sensors.NewFakeThermometer(frq), nil
-	}
-	return nil, fmt.Errorf("unknown thermometer: %s", conn)
-}
-
-func createHygrometer(frq time.Duration) (sensors.Hygrometer, error) {
-	conn := *flagHygroConn
-	if conn == "mock://fake" {
-		return sensors.NewFakeHygrometer(frq), nil
-	}
-	return nil, fmt.Errorf("unknown hygrometer: %s", conn)
-}
-
-func createWaterUnit(storage stats.Storage) (controllers.Unit, error) {
-	conn := *flagWaterConn
-	if conn == "mock://fake" {
-		return controllers.NewFakeUnit(stats.StatTypeWater, storage), nil
-	}
-	return nil, fmt.Errorf("unknown water unit: %s", conn)
-}
-
-func createFanUnit(storage stats.Storage) (controllers.Unit, error) {
-	conn := *flagFanConn
-	if conn == "mock://fake" {
-		return controllers.NewFakeUnit(stats.StatTypeFan, storage), nil
-	}
-	return nil, fmt.Errorf("unknown fan unit: %s", conn)
 }

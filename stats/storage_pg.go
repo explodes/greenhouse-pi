@@ -17,7 +17,7 @@ type pgStorage struct {
 	db *sql.DB
 }
 
-func NewPgStorage(conn string) (Storage, error) {
+func NewPostgresStorage(conn string) (Storage, error) {
 	db, err := sql.Open(pgDriver, conn)
 	if err != nil {
 		return nil, fmt.Errorf("error opening database storage: %v", err)
@@ -121,4 +121,8 @@ func (pg *pgStorage) Logs(level logging.Level, start, end time.Time) ([]logging.
 		results = append(results, entry)
 	}
 	return results, nil
+}
+
+func (pg *pgStorage) Close() error {
+	return pg.db.Close()
 }

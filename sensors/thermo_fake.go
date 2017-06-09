@@ -40,3 +40,7 @@ func (f *fakeThermometer) nextTemp() Temperature {
 func (f *fakeThermometer) Read() <-chan Temperature {
 	return f.results
 }
+
+func (f *fakeThermometer) Close() error {
+	return nil
+}

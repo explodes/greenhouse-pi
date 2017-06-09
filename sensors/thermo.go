@@ -2,6 +2,7 @@ package sensors
 
 type Thermometer interface {
 	Read() <-chan Temperature
+	Close() error
 }
 
 type Temperature float64

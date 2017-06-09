@@ -122,3 +122,7 @@ func (ss *sqliteStorage) Logs(level logging.Level, start, end time.Time) ([]logg
 	}
 	return results, nil
 }
+
+func (ss *sqliteStorage) Close() error {
+	return ss.db.Close()
+}

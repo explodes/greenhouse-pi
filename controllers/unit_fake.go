@@ -49,3 +49,7 @@ func (u *fakeUnit) Status() (UnitStatus, error) {
 	}
 	return UnitStatusOff, nil
 }
+
+func (u *fakeUnit) Close() error {
+	return nil
+}

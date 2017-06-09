@@ -37,4 +37,7 @@ type Storage interface {
 
 	// Logs retrieves logs for a given time frame with a given minimum log level
 	Logs(level logging.Level, start, end time.Time) ([]logging.LogEntry, error)
+
+	// Close closes the underlying connection
+	Close() error
 }
