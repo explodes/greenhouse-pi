@@ -2,15 +2,13 @@ package api_test
 
 import (
 	"net/http"
-	"reflect"
-	"runtime"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/explodes/greenhouse-pi/api"
 	"github.com/explodes/greenhouse-pi/controllers"
 	"github.com/explodes/greenhouse-pi/logging"
+	"github.com/explodes/greenhouse-pi/sensors"
 	"github.com/explodes/greenhouse-pi/stats"
 )
 
@@ -25,6 +23,8 @@ func apiViewTest(f func(t *testing.T, a *api.Api, w *responseWriterRecorder)) (s
 
 		scheduler := controllers.NewScheduler()
 		storage := stats.NewFakeStatsStorage(10)
+		defer storage.Close()
+
 		water, err := controllers.NewController(controllers.NewFakeUnit(stats.StatTypeWater, storage), storage, scheduler)
 		if err != nil {
 			t.Fatal(err)
@@ -34,7 +34,13 @@ func apiViewTest(f func(t *testing.T, a *api.Api, w *responseWriterRecorder)) (s
 			t.Fatal(err)
 		}
 
-		a := api.New(storage, water, fan)
+		therm := sensors.NewFakeThermometer(time.Hour)
+		defer therm.Close()
+
+		hygro := sensors.NewFakeHygrometer(time.Minute)
+		defer hygro.Close()
+
+		a := api.New(storage, water, fan, therm, hygro)
 		w := NewResponseWriterRecorder()
 
 		f(t, a, w)
@@ -222,8 +228,8 @@ func status_OK(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 		JsonBodyEquals(map[string]interface{}{
 			"water":       map[string]interface{}{"status": "off"},
 			"fan":         map[string]interface{}{"status": "off"},
-			"temperature": map[string]interface{}{"value": float64(0)},
-			"humidity":    map[string]interface{}{"value": float64(0)},
+			"temperature": map[string]interface{}{"value": float64(0), "frequency": int64(time.Hour) / int64(time.Millisecond)},
+			"humidity":    map[string]interface{}{"value": float64(0), "frequency": int64(time.Minute) / int64(time.Millisecond)},
 		})
 }
 
@@ -240,8 +246,8 @@ func status_OKwithValues(t *testing.T, a *api.Api, w *responseWriterRecorder) {
 		JsonBodyEquals(map[string]interface{}{
 			"water":       map[string]interface{}{"status": "off"},
 			"fan":         map[string]interface{}{"status": "off"},
-			"temperature": map[string]interface{}{"value": float64(1)},
-			"humidity":    map[string]interface{}{"value": float64(2)},
+			"temperature": map[string]interface{}{"value": float64(1), "frequency": int64(time.Hour) / int64(time.Millisecond)},
+			"humidity":    map[string]interface{}{"value": float64(2), "frequency": int64(time.Minute) / int64(time.Millisecond)},
 		})
 }
 

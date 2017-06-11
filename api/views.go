@@ -181,35 +181,48 @@ func (api *Api) Latest(w http.ResponseWriter, r *http.Request, vars map[string]s
 func (api *Api) Status(w http.ResponseWriter, r *http.Request, vars map[string]string) {
 	results := make(map[string]interface{}, 4)
 
-	putResult := func(key, valueKey string, err error, value interface{}) {
+	putStatus := func(key string, err error, value interface{}) {
 		if err != nil {
 			results[key] = map[string]interface{}{
 				"error": err,
 			}
 		} else {
 			results[key] = map[string]interface{}{
-				valueKey: value,
+				"status": value,
+			}
+		}
+	}
+
+	putSensorStatus := func(key string, err error, frequency time.Duration, value interface{}) {
+		if err != nil {
+			results[key] = map[string]interface{}{
+				"error": err,
+			}
+		} else {
+			results[key] = map[string]interface{}{
+				"value":     value,
+				"frequency": int64(frequency) / int64(time.Millisecond),
 			}
 		}
 	}
 
 	waterStatus, waterErr := api.Water.Unit.Status()
-	putResult("water", "status", waterErr, waterStatus)
+	putStatus("water", waterErr, waterStatus)
 
 	fanStatus, fanErr := api.Fan.Unit.Status()
-	putResult("fan", "status", fanErr, fanStatus)
+	putStatus("fan", fanErr, fanStatus)
 
 	temp, tempErr := api.Storage.Latest(stats.StatTypeTemperature)
 	if tempErr == stats.ErrNoStats {
 		tempErr = nil
 	}
-	putResult("temperature", "value", tempErr, temp.Value)
+	putSensorStatus("temperature", tempErr, api.Thermometer.Frequency(), temp.Value)
 
 	humidity, humidityErr := api.Storage.Latest(stats.StatTypeHumidity)
 	if humidityErr == stats.ErrNoStats {
 		humidityErr = nil
 	}
-	putResult("humidity", "value", humidityErr, humidity.Value)
+	putSensorStatus("humidity", humidityErr, api.Hygrometer.Frequency(), humidity.Value)
 
 	body, err := json.Marshal(results)
 	if err != nil {

@@ -134,7 +134,7 @@ func main() {
 		log.Fatalf("error logging monitor startup: %v", err)
 	}
 
-	log.Fatal(api.New(storage, waterController, fanController).Serve(*flagBind))
+	log.Fatal(api.New(storage, waterController, fanController, thermometer, hygrometer).Serve(*flagBind))
 }
 
 func validateConfiguration() {

@@ -11,36 +11,45 @@ const (
 )
 
 type fakeThermometer struct {
-	results chan Temperature
+	frq    time.Duration
+	closed chan struct{}
 }
 
 func NewFakeThermometer(frq time.Duration) Thermometer {
 	fake := &fakeThermometer{
-		results: make(chan Temperature),
+		frq:    frq,
+		closed: make(chan struct{}),
 	}
-
-	go fake.start(frq)
-
 	return fake
 }
 
-func (f *fakeThermometer) start(frq time.Duration) {
-	for {
-		f.results <- f.nextTemp()
-		<-time.After(frq)
-	}
-}
-
-func (f *fakeThermometer) nextTemp() Temperature {
+func (f *fakeThermometer) nextValue() Temperature {
 	temp := Temperature(theRand.Float64()*(fakeThermometerMax-fakeThermometerMin) + fakeThermometerMin)
 	log.Printf("temp: %g", temp)
 	return temp
 }
 
 func (f *fakeThermometer) Read() <-chan Temperature {
-	return f.results
+	results := make(chan Temperature)
+	go func() {
+		defer close(results)
+		for {
+			select {
+			case <-f.closed:
+				return
+			case <-time.After(f.frq):
+				results <- f.nextValue()
+			}
+		}
+	}()
+	return results
+}
+
+func (f *fakeThermometer) Frequency() time.Duration {
+	return f.frq
 }
 
 func (f *fakeThermometer) Close() error {
+	close(f.closed)
 	return nil
 }

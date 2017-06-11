@@ -7,6 +7,7 @@ import (
 
 	"github.com/explodes/greenhouse-pi/controllers"
 	"github.com/explodes/greenhouse-pi/logging"
+	"github.com/explodes/greenhouse-pi/sensors"
 	"github.com/explodes/greenhouse-pi/stats"
 	"github.com/gorilla/mux"
 )
@@ -29,10 +30,12 @@ var (
 // Api is an object used to serve the JSON api for this system.
 // See http://docs.greenhousepi.apiary.io for documentation
 type Api struct {
-	Storage stats.Storage
-	Logger  logging.Logger
-	Water   *controllers.Controller
-	Fan     *controllers.Controller
+	Storage     stats.Storage
+	Logger      logging.Logger
+	Water       *controllers.Controller
+	Fan         *controllers.Controller
+	Thermometer sensors.Thermometer
+	Hygrometer  sensors.Hygrometer
 }
 
 // KnownStat is a stats.Stat but we know what stats.StatType it is already
@@ -49,12 +52,14 @@ func (vh varsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // New creates a new Api instance with the given storage
-func New(storage stats.Storage, water, fan *controllers.Controller) *Api {
+func New(storage stats.Storage, water, fan *controllers.Controller, thermometer sensors.Thermometer, hygrometer sensors.Hygrometer) *Api {
 	return &Api{
-		Storage: storage,
-		Logger:  storage,
-		Water:   water,
-		Fan:     fan,
+		Storage:     storage,
+		Logger:      storage,
+		Water:       water,
+		Fan:         fan,
+		Thermometer: thermometer,
+		Hygrometer:  hygrometer,
 	}
 }
 

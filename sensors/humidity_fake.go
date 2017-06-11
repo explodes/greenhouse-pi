@@ -12,36 +12,45 @@ const (
 )
 
 type fakeHygrometer struct {
-	results chan Humidity
+	frq    time.Duration
+	closed chan struct{}
 }
 
 func NewFakeHygrometer(frq time.Duration) Hygrometer {
 	fake := &fakeHygrometer{
-		results: make(chan Humidity),
+		frq:    frq,
+		closed: make(chan struct{}),
 	}
-
-	go fake.start(frq)
-
 	return fake
 }
 
-func (f *fakeHygrometer) start(frq time.Duration) {
-	for {
-		f.results <- f.nextTemp()
-		<-time.After(frq)
-	}
-}
-
-func (f *fakeHygrometer) nextTemp() Humidity {
+func (f *fakeHygrometer) nextValue() Humidity {
 	hum := Humidity(theRand.Float64()*(fakeHygrometerMax-fakeHygrometerMin) + fakeHygrometerMin)
 	log.Printf("humidity: %g", hum)
 	return hum
 }
 
 func (f *fakeHygrometer) Read() <-chan Humidity {
-	return f.results
+	results := make(chan Humidity)
+	go func() {
+		defer close(results)
+		for {
+			select {
+			case <-f.closed:
+				return
+			case <-time.After(f.frq):
+				results <- f.nextValue()
+			}
+		}
+	}()
+	return results
+}
+
+func (f *fakeHygrometer) Frequency() time.Duration {
+	return f.frq
 }
 
 func (f *fakeHygrometer) Close() error {
+	close(f.closed)
 	return nil
 }
